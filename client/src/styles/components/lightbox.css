@@ -599,27 +599,23 @@
 .lightbox-download,
 .lightbox-share,
 .lightbox-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
   padding: 6px 12px;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f1f1f1;
   font-size: 12px;
+  line-height: 1;
   background: rgba(255, 255, 255, 0.06);
   text-decoration: none;
-}
-
-.lightbox-share {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.lightbox-download {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .lightbox-download .icon,
@@ -631,7 +627,16 @@
 
 .lightbox-download,
 .lightbox-share {
-  line-height: 1;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(241, 241, 241, 0.82);
+}
+
+.lightbox-download:hover,
+.lightbox-share:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f1f1;
 }
 
 .lightbox-size,
@@ -694,7 +699,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-      "meta nav nav"
+      "meta meta nav"
       "share download close";
     align-items: center;
     gap: 10px 14px;
