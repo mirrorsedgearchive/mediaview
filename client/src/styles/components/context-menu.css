@@ -40,6 +40,16 @@
   border-color: var(--divider-subtle);
 }
 
+.context-menu-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.context-menu-item:disabled:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
 .context-menu-icon {
   display: inline-flex;
   align-items: center;

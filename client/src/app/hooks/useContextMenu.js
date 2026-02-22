@@ -22,7 +22,7 @@ const useContextMenu = ({
   const openContextMenu = useCallback((entry, position, menuType = 'entry') => {
     if (!entry && menuType !== 'selection') return;
     const menuWidth = 200;
-    const menuHeight = menuType === 'selection' ? 64 : 120;
+    const menuHeight = menuType === 'selection' ? 104 : 120;
     const viewportWidth = window.innerWidth || 0;
     const viewportHeight = window.innerHeight || 0;
     const x = Math.min(position.x, Math.max(0, viewportWidth - menuWidth));

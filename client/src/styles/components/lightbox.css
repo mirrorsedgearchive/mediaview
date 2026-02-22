@@ -180,9 +180,59 @@
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
+.lightbox-nav .icon {
+  width: 14px;
+  height: 14px;
+}
+
 .lightbox-nav:disabled {
   opacity: 0.35;
   cursor: default;
+}
+
+.lightbox-side-nav {
+  position: absolute;
+  top: calc(50% - (var(--lightbox-toolbar-height) / 2));
+  transform: translateY(-50%);
+  width: 108px;
+  height: 72px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(172, 172, 172, 0.36);
+  color: rgba(255, 255, 255, 0.66);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.lightbox-side-nav .icon {
+  width: 34px;
+  height: 34px;
+}
+
+.lightbox-side-nav:hover {
+  background: rgba(172, 172, 172, 0.48);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.lightbox-side-nav:disabled {
+  color: rgba(255, 255, 255, 0.28);
+  background: rgba(172, 172, 172, 0.24);
+  cursor: default;
+}
+
+.lightbox-side-nav-prev {
+  left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lightbox-side-nav-next {
+  right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .lightbox-media {
@@ -542,6 +592,10 @@
   gap: 6px;
 }
 
+.lightbox.has-side-nav .lightbox-nav {
+  display: none;
+}
+
 .lightbox-download,
 .lightbox-close {
   padding: 6px 12px;
@@ -667,6 +721,16 @@
   .lightbox-nav-group {
     grid-area: nav;
     justify-self: end;
+  }
+
+  .lightbox-side-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .lightbox-side-nav {
+    display: none;
   }
 }
 

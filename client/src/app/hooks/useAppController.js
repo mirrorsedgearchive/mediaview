@@ -217,6 +217,14 @@ const useAppController = () => {
     }
   }, [selectionMode, setSelected]);
 
+  const handleSelectAllFiles = useCallback((entries) => {
+    const filesInView = Array.isArray(entries)
+      ? entries.filter((entry) => entry?.path && !entry.isDir)
+      : [];
+    setSelectionMode(true);
+    setSelectionEntries(filesInView);
+  }, [setSelectionEntries, setSelectionMode]);
+
   const handleRetryList = useCallback(() => {
     void loadDirectory(currentPath, { force: true });
   }, [currentPath, loadDirectory]);
@@ -270,8 +278,9 @@ const useAppController = () => {
 
   const selectionActionsValue = useMemo(() => ({
     onToggleSelection: toggleSelection,
-    onSetSelectionMode: setSelectionMode
-  }), [setSelectionMode, toggleSelection]);
+    onSetSelectionMode: setSelectionMode,
+    onSelectAllFiles: handleSelectAllFiles
+  }), [handleSelectAllFiles, setSelectionMode, toggleSelection]);
 
   const downloadStateValue = useMemo(() => ({
     downloadState,
@@ -380,6 +389,7 @@ const useAppController = () => {
         onClose: handleClose,
         onPrev: handlePrev,
         onNext: handleNext,
+        showSideNav: !isTreeHidden,
         showPath: true,
         onNavigatePath: handleNavigateFromLightbox
       }

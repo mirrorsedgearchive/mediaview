@@ -10,7 +10,12 @@ import {
   isVideoEntry,
   isViewableEntry
 } from '../../lib/fileTypes.js';
-import { IconFolder, iconForEntry } from './index.js';
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconFolder,
+  iconForEntry
+} from './index.js';
 
 const LARGE_FILE_THRESHOLD_BYTES = 10 * 1024 * 1024;
 const TEXT_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
@@ -151,6 +156,7 @@ const Lightbox = ({
   onClose,
   onPrev,
   onNext,
+  showSideNav = false,
   showPath = false,
   onNavigatePath
 }) => {
@@ -402,8 +408,35 @@ const Lightbox = ({
   const pathLabel = pathValue ? `/${pathValue}` : '/';
 
   return (
-    <div className="lightbox" ref={lightboxRef} role="dialog" aria-modal="true">
+    <div
+      className={`lightbox${showSideNav ? ' has-side-nav' : ''}`}
+      ref={lightboxRef}
+      role="dialog"
+      aria-modal="true"
+    >
       <button type="button" className="lightbox-backdrop" onClick={onClose} aria-label="Close preview" />
+      {showSideNav && (
+        <>
+          <button
+            type="button"
+            className="lightbox-side-nav lightbox-side-nav-prev"
+            onClick={onPrev}
+            disabled={activeIndex <= 0}
+            aria-label="Previous item"
+          >
+            <IconChevronLeft />
+          </button>
+          <button
+            type="button"
+            className="lightbox-side-nav lightbox-side-nav-next"
+            onClick={onNext}
+            disabled={activeIndex >= lightboxEntries.length - 1}
+            aria-label="Next item"
+          >
+            <IconChevronRight />
+          </button>
+        </>
+      )}
       <div className="lightbox-stage">
         <div
           className={`lightbox-body${isDocument ? ' is-document' : ''}${mediaLoading ? ' is-loading' : ''}`}
@@ -604,7 +637,7 @@ const Lightbox = ({
               disabled={activeIndex <= 0}
               aria-label="Previous item"
             >
-              ◀
+              <IconChevronLeft />
             </button>
             <button
               type="button"
@@ -613,7 +646,7 @@ const Lightbox = ({
               disabled={activeIndex >= lightboxEntries.length - 1}
               aria-label="Next item"
             >
-              ▶
+              <IconChevronRight />
             </button>
           </div>
           <a
