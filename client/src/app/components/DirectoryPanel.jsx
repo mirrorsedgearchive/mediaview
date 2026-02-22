@@ -21,6 +21,7 @@ import {
   IconFolder,
   IconFolderX,
   IconFolderOpen,
+  IconShare,
   IconSearch,
   SortButtons
 } from './index.js';
@@ -266,6 +267,7 @@ const DirectoryPanelBody = ({
   onContextCancelSelection,
   onContextSelect,
   onContextDownload,
+  onContextShare,
   onContextGoToEntry,
   isSearchActive,
   downloadPrompt,
@@ -303,7 +305,8 @@ const DirectoryPanelBody = ({
   onOpenContextMenu,
   zoomLevel,
   panelBodyNode,
-  useWindowScroll
+  useWindowScroll,
+  contextMenuEntryPath
 }) => (
   <div className="panel-body" ref={handlePanelBodyRef}>
     {contextMenu?.open && (
@@ -352,6 +355,12 @@ const DirectoryPanelBody = ({
                   <IconDownload />
                 </span>
                 Download
+              </button>
+              <button type="button" className="context-menu-item" onClick={onContextShare}>
+                <span className="context-menu-icon" aria-hidden="true">
+                  <IconShare />
+                </span>
+                Share
               </button>
               {isSearchActive && (
                 <button type="button" className="context-menu-item" onClick={onContextGoToEntry}>
@@ -434,6 +443,7 @@ const DirectoryPanelBody = ({
               selectedPaths={selectedPaths}
               onToggleSelection={onToggleSelection}
               onOpenContextMenu={onOpenContextMenu}
+              contextMenuEntryPath={contextMenuEntryPath}
               zoomLevel={zoomLevel}
               scrollParent={panelBodyNode}
               useWindowScroll={useWindowScroll}
@@ -523,6 +533,7 @@ const DirectoryPanelBody = ({
               selectedPaths={selectedPaths}
               onToggleSelection={onToggleSelection}
               onOpenContextMenu={onOpenContextMenu}
+              contextMenuEntryPath={contextMenuEntryPath}
               zoomLevel={zoomLevel}
               scrollParent={panelBodyNode}
               useWindowScroll={useWindowScroll}
@@ -575,6 +586,7 @@ const DirectoryPanel = () => {
     onCloseContextMenu,
     onContextSelect,
     onContextDownload,
+    onContextShare,
     onContextCancelSelection,
     onContextGoToEntry
   } = useContextMenuContext() || {};
@@ -598,6 +610,9 @@ const DirectoryPanel = () => {
     : downloadState?.processedFiles;
   const downloadSummary = downloadPrompt?.summary;
   const showProgressModal = hasDownloadStatus;
+  const contextMenuEntryPath = contextMenu?.open && contextMenu?.type === 'entry'
+    ? (contextMenu.entry?.path || '')
+    : '';
   const [sortKey, setSortKey] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
   const titleText = isSearchActive
@@ -751,6 +766,7 @@ const DirectoryPanel = () => {
         onContextCancelSelection={onContextCancelSelection}
         onContextSelect={onContextSelect}
         onContextDownload={onContextDownload}
+        onContextShare={onContextShare}
         onContextGoToEntry={onContextGoToEntry}
         isSearchActive={isSearchActive}
         downloadPrompt={downloadPrompt}
@@ -786,6 +802,7 @@ const DirectoryPanel = () => {
         selectedPaths={selectedPaths}
         onToggleSelection={onToggleSelection}
         onOpenContextMenu={onOpenContextMenu}
+        contextMenuEntryPath={contextMenuEntryPath}
         zoomLevel={zoomLevel}
         panelBodyNode={panelBodyNode}
         useWindowScroll={useWindowScroll}

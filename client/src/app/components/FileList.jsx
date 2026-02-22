@@ -109,6 +109,7 @@ const FileList = ({
   selectedPaths,
   onToggleSelection,
   onOpenContextMenu,
+  contextMenuEntryPath,
   scrollParent,
   useWindowScroll,
   zoomLevel
@@ -288,12 +289,13 @@ const FileList = ({
             {folders.map((entry) => {
               const isSelected = entry.path === selectedPath;
               const isBatchSelected = selectedPaths?.has(entry.path);
+              const isContextHovered = contextMenuEntryPath === entry.path;
               return (
                 <button
                   type="button"
                   key={entry.path}
                   data-path={entry.path}
-                  className={`grid-card grid-folder-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}`}
+                  className={`grid-card grid-folder-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}${isContextHovered ? ' context-hovered' : ''}`}
                   onClick={() => handleClick(entry)}
                   onPointerDown={(event) => handlePointerDown(entry, event)}
                   onPointerUp={handlePointerUp}
@@ -334,13 +336,14 @@ const FileList = ({
             itemContent={(_, entry) => {
             const isSelected = entry.path === selectedPath;
             const isBatchSelected = selectedPaths?.has(entry.path);
+            const isContextHovered = contextMenuEntryPath === entry.path;
             const hasPreview = entry.type === 'image' || entry.type === 'video';
             return (
               <button
                 type="button"
                 key={entry.path}
                 data-path={entry.path}
-                className={`grid-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}`}
+                className={`grid-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}${isContextHovered ? ' context-hovered' : ''}`}
                 onClick={() => handleClick(entry)}
                 onPointerDown={(event) => handlePointerDown(entry, event)}
                 onPointerUp={handlePointerUp}
@@ -411,13 +414,14 @@ const FileList = ({
           }
           const isSelected = entry.path === selectedPath;
           const isBatchSelected = selectedPaths?.has(entry.path);
+          const isContextHovered = contextMenuEntryPath === entry.path;
           const hasPreview = entry.type === 'image' || entry.type === 'video';
           return (
             <button
               type="button"
               key={entry.path}
               data-path={entry.path}
-              className={`list-row ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''} ${entry.isDir ? 'is-dir' : ''}`}
+              className={`list-row ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''} ${entry.isDir ? 'is-dir' : ''}${isContextHovered ? ' context-hovered' : ''}`}
               onClick={() => handleClick(entry)}
               onPointerDown={(event) => handlePointerDown(entry, event)}
               onPointerUp={handlePointerUp}

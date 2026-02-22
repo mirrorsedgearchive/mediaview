@@ -13,7 +13,9 @@ import {
 import {
   IconChevronLeft,
   IconChevronRight,
+  IconDownload,
   IconFolder,
+  IconShare,
   iconForEntry
 } from './index.js';
 
@@ -156,6 +158,7 @@ const Lightbox = ({
   onClose,
   onPrev,
   onNext,
+  onShareEntry,
   showSideNav = false,
   showPath = false,
   onNavigatePath
@@ -654,8 +657,17 @@ const Lightbox = ({
             href={buildFileUrl(selectedEntry.path)}
             download={selectedEntry.name}
           >
+            <IconDownload />
             Download
           </a>
+          <button
+            type="button"
+            className="lightbox-share"
+            onClick={() => onShareEntry?.(selectedEntry)}
+          >
+            <IconShare />
+            Share
+          </button>
           <button type="button" className="lightbox-close" onClick={onClose}>
             Close
           </button>

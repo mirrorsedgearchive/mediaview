@@ -5,6 +5,7 @@ import {
   ConnectionLightbox,
   DirectoryPanel,
   Lightbox,
+  Snackbar,
   TreePanel
 } from './components/index.js';
 import {
@@ -162,7 +163,8 @@ const AppProviders = ({
 
 const AppOverlays = ({
   connectionLightboxProps,
-  lightboxProps
+  lightboxProps,
+  snackbarProps
 }) => (
   <>
     {connectionLightboxProps?.open && (
@@ -171,6 +173,7 @@ const AppOverlays = ({
     {lightboxProps?.open && (
       <Lightbox {...lightboxProps} />
     )}
+    <Snackbar {...snackbarProps} />
   </>
 );
 

@@ -316,15 +316,25 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .list-row:hover {
-    border-color: var(--accent-border-soft);
+  .list-row:hover:not(.selected):not(.is-selected) {
+    border-color: transparent;
     background: var(--accent-bg-soft);
   }
 
-  .grid-card:hover {
-    border-color: var(--accent-border);
+  .grid-card:hover:not(.selected):not(.is-selected) {
+    border-color: transparent;
     background: var(--accent-bg);
   }
+}
+
+.list-row.context-hovered:not(.selected):not(.is-selected) {
+  border-color: transparent;
+  background: var(--accent-bg-soft);
+}
+
+.grid-card.context-hovered:not(.selected):not(.is-selected) {
+  border-color: transparent;
+  background: var(--accent-bg);
 }
 
 .thumb {

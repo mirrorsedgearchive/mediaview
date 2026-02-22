@@ -5,6 +5,7 @@ export { default as ConnectionLightbox } from './ConnectionLightbox.jsx';
 export { default as DirectoryPanel } from './DirectoryPanel.jsx';
 export { default as FileList } from './FileList.jsx';
 export { default as Lightbox } from './Lightbox.jsx';
+export { default as Snackbar } from './Snackbar.jsx';
 export { default as SortButtons } from './SortButtons.jsx';
 export { default as TreePanel } from './TreePanel.jsx';
 export { default as ViewToggle } from './ViewToggle.jsx';

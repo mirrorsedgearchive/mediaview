@@ -5,7 +5,8 @@ const useContextMenu = ({
   setSelectionEntries,
   discoverSelection,
   setDownloadPrompt,
-  onNavigateToEntry
+  onNavigateToEntry,
+  onShareEntry
 }) => {
   const [contextMenu, setContextMenu] = useState({
     open: false,
@@ -22,7 +23,7 @@ const useContextMenu = ({
   const openContextMenu = useCallback((entry, position, menuType = 'entry') => {
     if (!entry && menuType !== 'selection') return;
     const menuWidth = 200;
-    const menuHeight = menuType === 'selection' ? 104 : 120;
+    const menuHeight = menuType === 'selection' ? 104 : 220;
     const viewportWidth = window.innerWidth || 0;
     const viewportHeight = window.innerHeight || 0;
     const x = Math.min(position.x, Math.max(0, viewportWidth - menuWidth));
@@ -72,6 +73,12 @@ const useContextMenu = ({
     void onNavigateToEntry?.(contextMenu.entry);
   }, [closeContextMenu, contextMenu.entry, onNavigateToEntry]);
 
+  const handleContextShare = useCallback(async () => {
+    if (!contextMenu.entry) return;
+    closeContextMenu();
+    await onShareEntry?.(contextMenu.entry);
+  }, [closeContextMenu, contextMenu.entry, onShareEntry]);
+
   useEffect(() => {
     if (!contextMenu.open) return undefined;
     const handleKey = (event) => {
@@ -91,6 +98,7 @@ const useContextMenu = ({
     closeContextMenu,
     handleContextSelect,
     handleContextDownload,
+    handleContextShare,
     handleContextCancelSelection,
     handleContextGoToEntry
   };

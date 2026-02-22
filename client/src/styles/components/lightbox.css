@@ -597,6 +597,7 @@
 }
 
 .lightbox-download,
+.lightbox-share,
 .lightbox-close {
   padding: 6px 12px;
   border-radius: 4px;
@@ -605,6 +606,32 @@
   font-size: 12px;
   background: rgba(255, 255, 255, 0.06);
   text-decoration: none;
+}
+
+.lightbox-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lightbox-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lightbox-download .icon,
+.lightbox-share .icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+.lightbox-download,
+.lightbox-share {
+  line-height: 1;
 }
 
 .lightbox-size,
@@ -665,10 +692,10 @@
     height: auto;
     padding: 14px 16px 16px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-      "meta nav"
-      "download close";
+      "meta nav nav"
+      "share download close";
     align-items: center;
     gap: 10px 14px;
   }
@@ -703,11 +730,17 @@
   }
 
   .lightbox-download,
+  .lightbox-share,
   .lightbox-close {
     padding: 6px 10px;
     font-size: 11px;
     width: 100%;
     text-align: center;
+  }
+
+  .lightbox-share {
+    grid-area: share;
+    justify-content: center;
   }
 
   .lightbox-download {
@@ -736,17 +769,21 @@
 
 @media (max-width: 360px) {
   .lightbox-toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     grid-template-areas:
-      "meta"
-      "nav"
-      "download"
-      "close";
+      "meta meta"
+      "nav nav"
+      "share download"
+      "close close";
   }
 
   .lightbox-nav-group {
     justify-self: center;
     padding: 4px 0 2px;
+  }
+
+  .lightbox-close {
+    width: 100%;
   }
 }
 

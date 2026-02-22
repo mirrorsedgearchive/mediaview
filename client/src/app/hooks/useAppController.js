@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getBasename } from '../../lib/format.js';
 import { setUrlState } from '../../lib/urlState.js';
+import { buildPreviewUrlForEntry, copyToClipboard, tryNativeShare } from '../../lib/share.js';
 import { useDirectoryData } from './useDirectoryData.js';
 import { useBatchDownload } from './useBatchDownload.js';
 import { useAppRouting } from './useAppRouting.js';
@@ -63,6 +64,7 @@ const useAppController = () => {
   });
   const [lastBrowsePath, setLastBrowsePath] = useState('');
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '' });
   const [footerOpen, setFooterOpen] = useState(false);
   const searchHeaderRef = useRef(null);
   const layoutRef = useRef(null);
@@ -195,12 +197,37 @@ const useAppController = () => {
     setDownloadPrompt({ open: false, summary: null });
   }, []);
 
+  const handleDismissSnackbar = useCallback(() => {
+    setSnackbar({ open: false, message: '' });
+  }, []);
+
+  const showSnackbar = useCallback((message) => {
+    setSnackbar({ open: true, message });
+  }, []);
+
+  const handleShareEntry = useCallback(async (entry) => {
+    if (!entry?.path) return;
+    const previewUrl = buildPreviewUrlForEntry(entry);
+    const nativeShareResult = await tryNativeShare({
+      title: entry.name || 'Shared file',
+      url: previewUrl
+    });
+    if (nativeShareResult.shared || nativeShareResult.cancelled) return;
+    try {
+      await copyToClipboard(previewUrl);
+      showSnackbar('Preview link copied to clipboard.');
+    } catch {
+      showSnackbar('Could not copy link to clipboard.');
+    }
+  }, [showSnackbar]);
+
   const {
     contextMenu,
     openContextMenu,
     closeContextMenu,
     handleContextSelect,
     handleContextDownload,
+    handleContextShare,
     handleContextCancelSelection,
     handleContextGoToEntry
   } = useContextMenu({
@@ -208,7 +235,8 @@ const useAppController = () => {
     setSelectionEntries,
     discoverSelection,
     setDownloadPrompt,
-    onNavigateToEntry: handleNavigateFromLightbox
+    onNavigateToEntry: handleNavigateFromLightbox,
+    onShareEntry: handleShareEntry
   });
 
   useEffect(() => {
@@ -307,6 +335,7 @@ const useAppController = () => {
     onCloseContextMenu: closeContextMenu,
     onContextSelect: handleContextSelect,
     onContextDownload: handleContextDownload,
+    onContextShare: handleContextShare,
     onContextCancelSelection: handleContextCancelSelection,
     onContextGoToEntry: handleContextGoToEntry
   }), [
@@ -314,6 +343,7 @@ const useAppController = () => {
     contextMenu,
     handleContextCancelSelection,
     handleContextDownload,
+    handleContextShare,
     handleContextGoToEntry,
     handleContextSelect,
     openContextMenu
@@ -389,9 +419,15 @@ const useAppController = () => {
         onClose: handleClose,
         onPrev: handlePrev,
         onNext: handleNext,
+        onShareEntry: handleShareEntry,
         showSideNav: !isTreeHidden,
         showPath: true,
         onNavigatePath: handleNavigateFromLightbox
+      },
+      snackbarProps: {
+        open: snackbar.open,
+        message: snackbar.message,
+        onClose: handleDismissSnackbar
       }
     },
     isTreeHidden,
