@@ -46,7 +46,7 @@ export const registerListRoute = (app) => {
         children[entry.path] = getDirectoryEntries(entry.path) || [];
       });
 
-    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.setHeader('Cache-Control', 'public, max-age=300');
     res.json({
       current: {
         name: requestPath ? path.posix.basename(requestPath) : 'Archive',

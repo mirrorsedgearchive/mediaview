@@ -88,7 +88,7 @@ export const registerThumbnailRoute = (app) => {
       }
       const mimeType = mime.lookup(thumbPath) || 'application/octet-stream';
       const etag = `"${hash}"`;
-      const cacheControl = 'public, max-age=21600';
+      const cacheControl = 'public, max-age=21600, stale-while-revalidate=10800';
       res.setHeader('ETag', etag);
       res.setHeader('Cache-Control', cacheControl);
       if (matchesEtag(req.headers['if-none-match'], etag)) {

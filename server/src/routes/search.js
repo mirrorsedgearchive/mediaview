@@ -5,7 +5,7 @@ export const registerSearchRoute = (app) => {
     const query = typeof req.query.q === 'string' ? req.query.q.trim() : '';
     try {
       const { results, truncated } = await searchHashCache(query);
-      res.setHeader('Cache-Control', 'public, max-age=60');
+      res.setHeader('Cache-Control', 'public, max-age=300');
       res.json({
         query,
         results,

@@ -42,7 +42,7 @@ export const handleFileRequest = async (req, res, rawPath) => {
     }
     const hash = cached.hash;
     const etag = `"${hash}"`;
-    const cacheControl = 'public, max-age=3600, must-revalidate';
+    const cacheControl = 'public, max-age=21600, stale-while-revalidate=10800';
     res.setHeader('ETag', etag);
     res.setHeader('Last-Modified', stats.mtime.toUTCString());
     res.setHeader('Cache-Control', cacheControl);
