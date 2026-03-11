@@ -5,6 +5,7 @@ import {
   ConnectionLightbox,
   DirectoryPanel,
   Lightbox,
+  SettingsModal,
   Snackbar,
   TreePanel
 } from './components/index.js';
@@ -30,6 +31,7 @@ const AppChrome = ({
   onSearchSubmit,
   onSearchClear,
   onToggleFooter,
+  onOpenSettings,
   showFooterToggle,
   footerOpen,
   breadcrumbsPath,
@@ -45,6 +47,7 @@ const AppChrome = ({
       onSearchSubmit={onSearchSubmit}
       onSearchClear={onSearchClear}
       onToggleFooter={onToggleFooter}
+      onOpenSettings={onOpenSettings}
       showFooterToggle={showFooterToggle}
       footerOpen={footerOpen}
     />
@@ -164,6 +167,7 @@ const AppProviders = ({
 const AppOverlays = ({
   connectionLightboxProps,
   lightboxProps,
+  settingsModalProps,
   snackbarProps
 }) => (
   <>
@@ -172,6 +176,9 @@ const AppOverlays = ({
     )}
     {lightboxProps?.open && (
       <Lightbox {...lightboxProps} />
+    )}
+    {settingsModalProps?.open && (
+      <SettingsModal {...settingsModalProps} />
     )}
     <Snackbar {...snackbarProps} />
   </>

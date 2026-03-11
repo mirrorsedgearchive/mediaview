@@ -7,9 +7,11 @@
 @import './components/icons.css';
 @import './components/layout.css';
 @import './components/lightbox.css';
+@import './components/lightbox-warning.css';
 @import './components/media-list.css';
 @import './components/navigation.css';
 @import './components/panel.css';
+@import './components/settings.css';
 @import './components/snackbar.css';
 @import './components/toolbar.css';
 @import './components/TreePanel.css';

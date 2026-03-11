@@ -82,7 +82,8 @@
   gap: 10px;
 }
 
-.topbar-info {
+.topbar-info,
+.topbar-settings {
   width: 36px;
   height: 36px;
   border-radius: 8px;
@@ -95,11 +96,13 @@
   transition: border-color 160ms ease-out, color 160ms ease-out;
 }
 
-.topbar-info .icon {
+.topbar-info .icon,
+.topbar-settings .icon {
   font-size: 18px;
 }
 
-.topbar-info:hover {
+.topbar-info:hover,
+.topbar-settings:hover {
   border-color: var(--accent-border);
   color: var(--accent);
 }

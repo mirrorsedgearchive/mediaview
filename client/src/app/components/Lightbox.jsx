@@ -15,9 +15,11 @@ import {
   IconChevronRight,
   IconDownload,
   IconFolder,
+  IconInfoCircle,
   IconShare,
   iconForEntry
 } from './index.js';
+import LightboxLargeFileWarning from './LightboxLargeFileWarning.jsx';
 
 const LARGE_FILE_THRESHOLD_BYTES = 10 * 1024 * 1024;
 const TEXT_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
@@ -74,6 +76,7 @@ const AUDIO_MIME_TYPES = {
 };
 
 let markdownLibPromise = null;
+const loadedLargeFileKeys = new Set();
 const loadMarkdownLibs = () => {
   if (!markdownLibPromise) {
     markdownLibPromise = Promise.all([
@@ -161,7 +164,9 @@ const Lightbox = ({
   onShareEntry,
   showSideNav = false,
   showPath = false,
-  onNavigatePath
+  onNavigatePath,
+  warnOnLargeFiles = true,
+  onDisableLargeFileWarnings
 }) => {
   const [mediaLoading, setMediaLoading] = useState(false);
   const [mediaMeta, setMediaMeta] = useState({ width: null, height: null, duration: null });
@@ -175,6 +180,7 @@ const Lightbox = ({
   });
   const [textRetryToken, setTextRetryToken] = useState(0);
   const [largeFileWarningDismissed, setLargeFileWarningDismissed] = useState(false);
+  const [disableLargeFileWarningsChecked, setDisableLargeFileWarningsChecked] = useState(false);
   const [videoPreviewFailed, setVideoPreviewFailed] = useState(false);
   const [imagePreviewFailed, setImagePreviewFailed] = useState(false);
   const imageRef = useRef(null);
@@ -193,8 +199,10 @@ const Lightbox = ({
   const shouldShowDimensions = isImage || isVideo;
   const hasDimensions = Number.isFinite(mediaMeta.width) && Number.isFinite(mediaMeta.height);
   const placeholderDimensions = '-- × --';
+  const fileKey = selectedEntry?.path || '';
   const isLargeFile = Number.isFinite(selectedEntry?.size)
     && selectedEntry.size >= LARGE_FILE_THRESHOLD_BYTES;
+  const isSessionApprovedLargeFile = fileKey && loadedLargeFileKeys.has(fileKey);
   const isLargeText = isText
     && Number.isFinite(selectedEntry?.size)
     && selectedEntry.size > TEXT_PREVIEW_MAX_BYTES;
@@ -210,27 +218,40 @@ const Lightbox = ({
     && canPreviewImage
     && canPreviewAudio
     && canPreviewText;
-  const shouldWarnLargeFile = isLargeFile && !isStreamable && canPreviewEntry;
-  const shouldGateLargeFile = shouldWarnLargeFile && !largeFileWarningDismissed;
+  const shouldWarnLargeFile = isLargeFile && !isStreamable && canPreviewEntry && warnOnLargeFiles;
+  const shouldGateLargeFile = shouldWarnLargeFile
+    && !largeFileWarningDismissed
+    && !isSessionApprovedLargeFile;
 
   useEffect(() => {
     if (!open) {
       setLargeFileWarningDismissed(false);
+      setDisableLargeFileWarningsChecked(false);
       setVideoPreviewFailed(false);
       setImagePreviewFailed(false);
       return;
     }
     if (selectedEntry?.isDir) {
       setLargeFileWarningDismissed(false);
+      setDisableLargeFileWarningsChecked(false);
       onClose();
       return;
     }
     setLargeFileWarningDismissed(false);
+    setDisableLargeFileWarningsChecked(false);
     setMediaLoading(false);
     setMediaMeta({ width: null, height: null, duration: null });
     setVideoPreviewFailed(false);
     setImagePreviewFailed(false);
   }, [onClose, open, selectedEntry]);
+
+  useEffect(() => {
+    if (!open || !fileKey) return;
+    if (!isLargeFile || isStreamable || !canPreviewEntry) return;
+    if (!shouldGateLargeFile) {
+      loadedLargeFileKeys.add(fileKey);
+    }
+  }, [canPreviewEntry, fileKey, isLargeFile, isStreamable, open, shouldGateLargeFile]);
 
   useEffect(() => {
     if (!open || !selectedEntry) return;
@@ -451,28 +472,19 @@ const Lightbox = ({
             aria-label="Close preview"
           />
           {shouldGateLargeFile && (
-            <div className="lightbox-warning">
-              <div className="lightbox-warning-title">Large file</div>
-              <div className="lightbox-warning-copy">
-                This file is {formatSize(selectedEntry.size)}. Loading may take a while.
-              </div>
-              <div className="lightbox-warning-actions">
-                <button
-                  type="button"
-                  className="lightbox-warning-button"
-                  onClick={() => setLargeFileWarningDismissed(true)}
-                >
-                  Load file
-                </button>
-                <button
-                  type="button"
-                  className="lightbox-warning-button is-secondary"
-                  onClick={onClose}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            <LightboxLargeFileWarning
+              sizeLabel={formatSize(selectedEntry.size)}
+              disableWarningsChecked={disableLargeFileWarningsChecked}
+              onToggleDisableWarnings={setDisableLargeFileWarningsChecked}
+              onLoadFile={() => {
+                if (fileKey) loadedLargeFileKeys.add(fileKey);
+                if (disableLargeFileWarningsChecked) {
+                  onDisableLargeFileWarnings?.();
+                }
+                setLargeFileWarningDismissed(true);
+              }}
+              onClose={onClose}
+            />
           )}
           {!shouldGateLargeFile && canPreviewVideo && canPreviewImage && (isImage || isVideo) && (
             <div className={`lightbox-media${mediaLoading ? ' is-loading' : ''}${isSvg ? ' is-svg' : ''}`}>
@@ -578,9 +590,14 @@ const Lightbox = ({
           )}
           {!shouldGateLargeFile && !canPreviewEntry && (
             <div className="lightbox-unknown">
-              <div className="lightbox-unknown-title">Preview unavailable</div>
-              <div className="lightbox-unknown-copy">
-                This file type isn&apos;t supported. Use Download to open it.
+              <span className="lightbox-unknown-icon" aria-hidden="true">
+                <IconInfoCircle />
+              </span>
+              <div className="lightbox-unknown-content">
+                <div className="lightbox-unknown-title">Preview unavailable</div>
+                <div className="lightbox-unknown-copy">
+                  This type can&apos;t be previewed here. Use Download to open it.
+                </div>
               </div>
             </div>
           )}

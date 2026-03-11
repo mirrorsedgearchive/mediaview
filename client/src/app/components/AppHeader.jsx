@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { IconClose, IconInfoCircle, IconSearch, ViewToggle } from './index.js';
+import { IconClose, IconGear, IconInfoCircle, IconSearch, ViewToggle } from './index.js';
 import { useViewContext } from '../contexts/index.js';
 
 const AppHeader = forwardRef(({
@@ -9,6 +9,7 @@ const AppHeader = forwardRef(({
   onSearchSubmit,
   onSearchClear,
   onToggleFooter,
+  onOpenSettings,
   showFooterToggle,
   footerOpen
 }, ref) => {
@@ -141,6 +142,15 @@ const AppHeader = forwardRef(({
             <IconInfoCircle />
           </button>
         )}
+        <button
+          type="button"
+          className="topbar-settings"
+          onClick={onOpenSettings}
+          aria-label="Settings"
+          title="Settings"
+        >
+          <IconGear />
+        </button>
         <ViewToggle
           viewMode={viewMode}
           onChange={setViewMode}

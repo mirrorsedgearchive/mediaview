@@ -4,8 +4,10 @@ import { setUrlState } from '../../lib/urlState.js';
 import { buildPreviewUrlForEntry, copyToClipboard, tryNativeShare } from '../../lib/share.js';
 import { useDirectoryData } from './useDirectoryData.js';
 import { useBatchDownload } from './useBatchDownload.js';
+import { useAppPreferences } from './useAppPreferences.js';
 import { useAppRouting } from './useAppRouting.js';
 import { useContextMenu } from './useContextMenu.js';
+import { useDownloadPrompt } from './useDownloadPrompt.js';
 import { useLightboxState } from './useLightboxState.js';
 import { useMediaQuery } from './useMediaQuery.js';
 
@@ -59,14 +61,12 @@ const useAppController = () => {
     resetDownloadState,
     downloadState
   } = useBatchDownload();
-  const [downloadPrompt, setDownloadPrompt] = useState({
-    open: false,
-    summary: null
-  });
   const [lastBrowsePath, setLastBrowsePath] = useState('');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
   const [footerOpen, setFooterOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { theme, setTheme, warnOnLargeFiles, setWarnOnLargeFiles } = useAppPreferences();
   const searchHeaderRef = useRef(null);
   const layoutRef = useRef(null);
   const loadDirectoryRef = useRef(loadDirectory);
@@ -102,6 +102,14 @@ const useAppController = () => {
 
   const handleToggleFooter = useCallback(() => {
     setFooterOpen((prev) => !prev);
+  }, []);
+
+  const handleOpenSettings = useCallback(() => {
+    setSettingsOpen(true);
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setSettingsOpen(false);
   }, []);
 
   const navigateTo = useCallback(async (pathValue, options = {}) => {
@@ -181,22 +189,13 @@ const useAppController = () => {
     setLightboxOpen
   });
 
-  const handleRequestDownload = useCallback(async () => {
-    const summary = await discoverSelection();
-    if (summary) {
-      setDownloadPrompt({ open: true, summary });
-    }
-  }, [discoverSelection]);
-
-  const handleConfirmDownload = useCallback(() => {
-    if (!downloadPrompt.summary) return;
-    downloadSelection(null, downloadPrompt.summary);
-    setDownloadPrompt({ open: false, summary: null });
-  }, [downloadPrompt.summary, downloadSelection]);
-
-  const handleCancelDownloadPrompt = useCallback(() => {
-    setDownloadPrompt({ open: false, summary: null });
-  }, []);
+  const {
+    downloadPrompt,
+    setDownloadPrompt,
+    handleRequestDownload,
+    handleConfirmDownload,
+    handleCancelDownloadPrompt
+  } = useDownloadPrompt({ discoverSelection, downloadSelection });
 
   const handleDismissSnackbar = useCallback(() => {
     setSnackbar({ open: false, message: '' });
@@ -378,6 +377,7 @@ const useAppController = () => {
       onSearchSubmit: handleSearchSubmit,
       onSearchClear: handleCloseSearch,
       onToggleFooter: handleToggleFooter,
+      onOpenSettings: handleOpenSettings,
       showFooterToggle: !isTreeHidden,
       footerOpen,
       breadcrumbsPath: status.error ? lastGoodPath : currentPath,
@@ -423,7 +423,17 @@ const useAppController = () => {
         onShareEntry: handleShareEntry,
         showSideNav: !isTreeHidden,
         showPath: true,
-        onNavigatePath: handleNavigateFromLightbox
+        onNavigatePath: handleNavigateFromLightbox,
+        warnOnLargeFiles,
+        onDisableLargeFileWarnings: () => setWarnOnLargeFiles(false)
+      },
+      settingsModalProps: {
+        open: settingsOpen,
+        onClose: handleCloseSettings,
+        theme,
+        onThemeChange: setTheme,
+        warnOnLargeFiles,
+        onWarnOnLargeFilesChange: setWarnOnLargeFiles
       },
       snackbarProps: {
         open: snackbar.open,

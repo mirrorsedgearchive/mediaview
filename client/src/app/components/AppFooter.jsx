@@ -1,39 +1,5 @@
-import { useEffect, useState } from 'react';
-
-const THEME_STORAGE_KEY = 'mediaview:theme';
-
-const getStoredTheme = () => {
-  if (typeof window === 'undefined') return 'auto';
-  try {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto';
-  } catch {
-    return 'auto';
-  }
-};
-
-const applyTheme = (value) => {
-  if (typeof document === 'undefined') return;
-  document.documentElement.dataset.theme = value;
-};
-
 export default function AppFooter() {
-  const [theme, setTheme] = useState(getStoredTheme);
   const commitShort = import.meta.env.VITE_APP_COMMIT_SHORT || (import.meta.env.DEV ? 'deadc0d' : '');
-
-  useEffect(() => {
-    applyTheme(theme);
-    if (typeof window === 'undefined') return;
-    try {
-      if (theme === 'auto') {
-        window.localStorage.removeItem(THEME_STORAGE_KEY);
-      } else {
-        window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-      }
-    } catch {
-      // Ignore storage write failures.
-    }
-  }, [theme]);
 
   return (
     <footer className="app-footer">
@@ -52,18 +18,6 @@ export default function AppFooter() {
           <span aria-hidden="true">•</span>
           <a href="https://www.mirrorsedgearchive.org/legal/takedown.html">DMCA</a>
         </div>
-        <label className="footer-theme">
-          <span>Theme</span>
-          <select
-            value={theme}
-            onChange={(event) => setTheme(event.target.value)}
-            aria-label="Theme"
-          >
-            <option value="auto">Automatic</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
       </div>
       <div className="footer-body">
         <p>
