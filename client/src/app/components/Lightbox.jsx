@@ -2,6 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { buildFileUrl } from '../../lib/api.js';
 import { formatSize } from '../../lib/format.js';
 import {
+  getImageMimeType,
+  getImageSupportStatus,
+  isAudioPlayable,
+  isVideoPlayable,
+  resolveImageSupportStatus
+} from '../../lib/media.js';
+import {
   getEntryExtension,
   isAudioEntry,
   isDocumentPreviewEntry,
@@ -17,62 +24,66 @@ import {
   IconFolder,
   IconInfoCircle,
   IconShare,
-  iconForEntry
+  iconForEntry,
+  LightboxLargeFileWarning
 } from './index.js';
-import LightboxLargeFileWarning from './LightboxLargeFileWarning.jsx';
 
 const LARGE_FILE_THRESHOLD_BYTES = 10 * 1024 * 1024;
 const TEXT_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
-const VIDEO_MIME_TYPES = {
-  '.mp4': 'video/mp4',
-  '.m4v': 'video/mp4',
-  '.webm': 'video/webm',
-  '.mov': 'video/quicktime',
-  '.mkv': 'video/x-matroska',
-  '.avi': 'video/x-msvideo',
-  '.asf': 'video/x-ms-asf',
-  '.wmv': 'video/x-ms-wmv',
-  '.flv': 'video/x-flv',
-  '.f4v': 'video/x-f4v',
-  '.mpg': 'video/mpeg',
-  '.mpeg': 'video/mpeg',
-  '.3gp': 'video/3gpp',
-  '.3g2': 'video/3gpp2',
-  '.ogv': 'video/ogg',
-  '.mts': 'video/mp2t',
-  '.m2ts': 'video/mp2t',
-  '.ts': 'video/mp2t',
-  '.vob': 'video/mpeg',
-  '.rm': 'video/vnd.rn-realvideo',
-  '.rmvb': 'video/vnd.rn-realvideo',
-  '.mxf': 'video/mxf',
-  '.m1v': 'video/mpeg',
-  '.m2v': 'video/mpeg'
+const EMPTY_MEDIA_META = {
+  width: null,
+  height: null,
+  duration: null
 };
-const IMAGE_MIME_TYPES = {
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-  '.bmp': 'image/bmp',
-  '.svg': 'image/svg+xml',
-  '.avif': 'image/avif',
-  '.tiff': 'image/tiff',
-  '.tif': 'image/tiff',
-  '.heic': 'image/heic',
-  '.ico': 'image/x-icon'
+const IDLE_TEXT_PREVIEW = {
+  status: 'idle',
+  content: '',
+  html: '',
+  truncated: false,
+  error: '',
+  retryable: false
 };
-const AUDIO_MIME_TYPES = {
-  '.mp3': 'audio/mpeg',
-  '.m4a': 'audio/mp4',
-  '.aac': 'audio/aac',
-  '.wav': 'audio/wav',
-  '.flac': 'audio/flac',
-  '.ogg': 'audio/ogg',
-  '.wma': 'audio/x-ms-wma',
-  '.alac': 'audio/x-alac',
-  '.aiff': 'audio/aiff'
+const LOADING_TEXT_PREVIEW = {
+  ...IDLE_TEXT_PREVIEW,
+  status: 'loading'
+};
+
+const resetMediaState = ({
+  setDisableLargeFileWarningsChecked,
+  setImagePreviewFailed,
+  setLargeFileWarningDismissed,
+  setMediaLoading,
+  setMediaMeta,
+  setVideoPreviewFailed
+}) => {
+  setLargeFileWarningDismissed(false);
+  setDisableLargeFileWarningsChecked(false);
+  setMediaLoading(false);
+  setMediaMeta(EMPTY_MEDIA_META);
+  setVideoPreviewFailed(false);
+  setImagePreviewFailed(false);
+};
+
+const resetClosedState = ({
+  setDisableLargeFileWarningsChecked,
+  setImagePreviewFailed,
+  setImageSupportStatus,
+  setLargeFileWarningDismissed,
+  setMediaLoading,
+  setMediaMeta,
+  setTextPreview,
+  setVideoPreviewFailed
+}) => {
+  resetMediaState({
+    setDisableLargeFileWarningsChecked,
+    setImagePreviewFailed,
+    setLargeFileWarningDismissed,
+    setMediaLoading,
+    setMediaMeta,
+    setVideoPreviewFailed
+  });
+  setTextPreview(IDLE_TEXT_PREVIEW);
+  setImageSupportStatus('supported');
 };
 
 let markdownLibPromise = null;
@@ -88,69 +99,6 @@ const loadMarkdownLibs = () => {
     }));
   }
   return markdownLibPromise;
-};
-
-const videoSupportCache = new Map();
-const isVideoPlayable = (entry) => {
-  if (!isVideoEntry(entry)) return true;
-  if (typeof document === 'undefined') return true;
-  const ext = getEntryExtension(entry);
-  if (ext === '.mkv') return true;
-  const mimeType = VIDEO_MIME_TYPES[ext];
-  if (!mimeType) return true;
-  if (videoSupportCache.has(mimeType)) {
-    return videoSupportCache.get(mimeType);
-  }
-  const probe = document.createElement('video');
-  const result = probe.canPlayType(mimeType);
-  const playable = result === 'probably' || result === 'maybe';
-  videoSupportCache.set(mimeType, playable);
-  return playable;
-};
-
-const imageSupportCache = new Map();
-const supportsImageMime = (mimeType) => {
-  if (imageSupportCache.has(mimeType)) {
-    return imageSupportCache.get(mimeType);
-  }
-  let supported = true;
-  if (mimeType === 'image/webp' || mimeType === 'image/avif') {
-    try {
-      const canvas = document.createElement('canvas');
-      const dataUrl = canvas.toDataURL(mimeType);
-      supported = dataUrl.startsWith(`data:${mimeType}`);
-    } catch {
-      supported = false;
-    }
-  }
-  imageSupportCache.set(mimeType, supported);
-  return supported;
-};
-
-const isImagePlayable = (entry) => {
-  if (!isImageEntry(entry)) return true;
-  if (typeof document === 'undefined') return true;
-  const ext = getEntryExtension(entry);
-  const mimeType = IMAGE_MIME_TYPES[ext];
-  if (!mimeType) return true;
-  return supportsImageMime(mimeType);
-};
-
-const audioSupportCache = new Map();
-const isAudioPlayable = (entry) => {
-  if (!isAudioEntry(entry)) return true;
-  if (typeof document === 'undefined') return true;
-  const ext = getEntryExtension(entry);
-  const mimeType = AUDIO_MIME_TYPES[ext];
-  if (!mimeType) return true;
-  if (audioSupportCache.has(mimeType)) {
-    return audioSupportCache.get(mimeType);
-  }
-  const probe = document.createElement('audio');
-  const result = probe.canPlayType(mimeType);
-  const playable = result === 'probably' || result === 'maybe';
-  audioSupportCache.set(mimeType, playable);
-  return playable;
 };
 
 const Lightbox = ({
@@ -169,81 +117,124 @@ const Lightbox = ({
   onDisableLargeFileWarnings
 }) => {
   const [mediaLoading, setMediaLoading] = useState(false);
-  const [mediaMeta, setMediaMeta] = useState({ width: null, height: null, duration: null });
-  const [textPreview, setTextPreview] = useState({
-    status: 'idle',
-    content: '',
-    html: '',
-    truncated: false,
-    error: '',
-    retryable: false
-  });
+  const [mediaMeta, setMediaMeta] = useState(EMPTY_MEDIA_META);
+  const [textPreview, setTextPreview] = useState(IDLE_TEXT_PREVIEW);
   const [textRetryToken, setTextRetryToken] = useState(0);
   const [largeFileWarningDismissed, setLargeFileWarningDismissed] = useState(false);
   const [disableLargeFileWarningsChecked, setDisableLargeFileWarningsChecked] = useState(false);
   const [videoPreviewFailed, setVideoPreviewFailed] = useState(false);
   const [imagePreviewFailed, setImagePreviewFailed] = useState(false);
+  const [imageSupportStatus, setImageSupportStatus] = useState('supported');
   const imageRef = useRef(null);
   const videoRef = useRef(null);
   const lightboxRef = useRef(null);
   const toolbarRef = useRef(null);
 
+  const isDirectory = Boolean(selectedEntry?.isDir);
+  const selectedPath = selectedEntry?.path || '';
+  const selectedName = selectedEntry?.name || '';
+  const selectedExt = getEntryExtension(selectedEntry);
+  const selectedImageMimeType = getImageMimeType(selectedEntry);
+  const selectedSize = selectedEntry?.size;
+  const previewSource = selectedPath ? buildFileUrl(selectedPath) : '';
+
   const isVideo = isVideoEntry(selectedEntry);
   const isImage = isImageEntry(selectedEntry);
-  const isSvg = isImage && getEntryExtension(selectedEntry) === '.svg';
+  const isSvg = isImage && selectedExt === '.svg';
   const isAudio = isAudioEntry(selectedEntry);
   const isDocument = isDocumentPreviewEntry(selectedEntry);
   const isText = isTextEntry(selectedEntry);
   const isStreamable = isVideo || isAudio;
-  const isMarkdown = isText && getEntryExtension(selectedEntry) === '.md';
+  const isMarkdown = isText && selectedExt === '.md';
   const shouldShowDimensions = isImage || isVideo;
   const hasDimensions = Number.isFinite(mediaMeta.width) && Number.isFinite(mediaMeta.height);
   const placeholderDimensions = '-- × --';
-  const fileKey = selectedEntry?.path || '';
-  const isLargeFile = Number.isFinite(selectedEntry?.size)
-    && selectedEntry.size >= LARGE_FILE_THRESHOLD_BYTES;
+  const fileKey = selectedPath;
+  const isLargeFile = Number.isFinite(selectedSize)
+    && selectedSize >= LARGE_FILE_THRESHOLD_BYTES;
   const isSessionApprovedLargeFile = fileKey && loadedLargeFileKeys.has(fileKey);
   const isLargeText = isText
-    && Number.isFinite(selectedEntry?.size)
-    && selectedEntry.size > TEXT_PREVIEW_MAX_BYTES;
+    && Number.isFinite(selectedSize)
+    && selectedSize > TEXT_PREVIEW_MAX_BYTES;
   const canPreviewText = !isLargeText;
   const videoPlayable = isVideoPlayable(selectedEntry);
-  const imagePlayable = isImagePlayable(selectedEntry);
   const audioPlayable = isAudioPlayable(selectedEntry);
+  const imageCapabilityKnown = imageSupportStatus !== 'pending';
   const canPreviewVideo = !isVideo || (videoPlayable && !videoPreviewFailed);
-  const canPreviewImage = !isImage || (imagePlayable && !imagePreviewFailed);
+  const canPreviewImage = !isImage
+    || (imageSupportStatus !== 'unsupported' && !imagePreviewFailed);
   const canPreviewAudio = !isAudio || audioPlayable;
   const canPreviewEntry = isViewableEntry(selectedEntry)
     && canPreviewVideo
     && canPreviewImage
     && canPreviewAudio
     && canPreviewText;
-  const shouldWarnLargeFile = isLargeFile && !isStreamable && canPreviewEntry && warnOnLargeFiles;
+  const shouldWarnLargeFile = isLargeFile
+    && !isStreamable
+    && canPreviewEntry
+    && (!isImage || imageCapabilityKnown)
+    && warnOnLargeFiles;
   const shouldGateLargeFile = shouldWarnLargeFile
     && !largeFileWarningDismissed
     && !isSessionApprovedLargeFile;
 
   useEffect(() => {
     if (!open) {
-      setLargeFileWarningDismissed(false);
-      setDisableLargeFileWarningsChecked(false);
-      setVideoPreviewFailed(false);
-      setImagePreviewFailed(false);
+      resetClosedState({
+        setDisableLargeFileWarningsChecked,
+        setImagePreviewFailed,
+        setImageSupportStatus,
+        setLargeFileWarningDismissed,
+        setMediaLoading,
+        setMediaMeta,
+        setTextPreview,
+        setVideoPreviewFailed
+      });
       return;
     }
-    if (selectedEntry?.isDir) {
-      setLargeFileWarningDismissed(false);
-      setDisableLargeFileWarningsChecked(false);
+    if (isDirectory) {
+      resetMediaState({
+        setDisableLargeFileWarningsChecked,
+        setImagePreviewFailed,
+        setLargeFileWarningDismissed,
+        setMediaLoading,
+        setMediaMeta,
+        setVideoPreviewFailed
+      });
       onClose();
       return;
     }
-    setLargeFileWarningDismissed(false);
-    setDisableLargeFileWarningsChecked(false);
-    setMediaLoading(false);
-    setMediaMeta({ width: null, height: null, duration: null });
-    setVideoPreviewFailed(false);
-    setImagePreviewFailed(false);
-  }, [onClose, open, selectedEntry]);
+    resetMediaState({
+      setDisableLargeFileWarningsChecked,
+      setImagePreviewFailed,
+      setLargeFileWarningDismissed,
+      setMediaLoading,
+      setMediaMeta,
+      setVideoPreviewFailed
+    });
+  }, [isDirectory, onClose, open, selectedPath]);
+
+  useEffect(() => {
+    if (!open || !selectedPath || !isImage) {
+      setImageSupportStatus('supported');
+      return undefined;
+    }
+    const nextStatus = getImageSupportStatus(selectedImageMimeType);
+    setImageSupportStatus(nextStatus);
+    if (nextStatus !== 'pending') {
+      return undefined;
+    }
+    let cancelled = false;
+    void resolveImageSupportStatus(selectedImageMimeType)
+      .then((status) => {
+        if (!cancelled) {
+          setImageSupportStatus(status);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isImage, open, selectedImageMimeType, selectedPath]);
 
   useEffect(() => {
     if (!open || !fileKey) return;
@@ -254,7 +245,7 @@ const Lightbox = ({
   }, [canPreviewEntry, fileKey, isLargeFile, isStreamable, open, shouldGateLargeFile]);
 
   useEffect(() => {
-    if (!open || !selectedEntry) return;
+    if (!open || !selectedPath) return;
     if (isImage && imageRef.current?.complete) {
       setMediaLoading(false);
       setMediaMeta({
@@ -271,10 +262,10 @@ const Lightbox = ({
         duration: videoRef.current.duration
       });
     }
-  }, [open, selectedEntry, isImage, isVideo]);
+  }, [open, isImage, isVideo, selectedPath]);
 
   useEffect(() => {
-    if (!open || !selectedEntry) return undefined;
+    if (!open || !selectedPath) return undefined;
     if (!isImage && !isVideo) return undefined;
     const frameId = requestAnimationFrame(() => {
       if (isImage) {
@@ -290,43 +281,22 @@ const Lightbox = ({
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [open, selectedEntry, isImage, isVideo]);
+  }, [open, isImage, isVideo, selectedPath]);
 
   useEffect(() => {
-    if (!open || !selectedEntry || !isText) {
-      setTextPreview({
-        status: 'idle',
-        content: '',
-        html: '',
-        truncated: false,
-        error: '',
-        retryable: false
-      });
+    if (!open || !selectedPath || !isText) {
+      setTextPreview(IDLE_TEXT_PREVIEW);
       return undefined;
     }
     if (shouldGateLargeFile || !canPreviewText) {
-      setTextPreview({
-        status: 'idle',
-        content: '',
-        html: '',
-        truncated: false,
-        error: '',
-        retryable: false
-      });
+      setTextPreview(IDLE_TEXT_PREVIEW);
       return undefined;
     }
-    let isActive = true;
+    const controller = new AbortController();
     const loadText = async () => {
-      setTextPreview({
-        status: 'loading',
-        content: '',
-        html: '',
-        truncated: false,
-        error: '',
-        retryable: false
-      });
+      setTextPreview(LOADING_TEXT_PREVIEW);
       try {
-        const response = await fetch(buildFileUrl(selectedEntry.path));
+        const response = await fetch(previewSource, { signal: controller.signal });
         if (!response.ok) {
           const error = new Error('Failed to load text preview');
           error.status = response.status;
@@ -334,11 +304,11 @@ const Lightbox = ({
           throw error;
         }
         const content = await response.text();
-        if (!isActive) return;
+        if (controller.signal.aborted) return;
         let html = '';
         if (isMarkdown) {
           const { snarkdown, xss } = await loadMarkdownLibs();
-          if (!isActive) return;
+          if (controller.signal.aborted) return;
           html = xss(snarkdown(content));
         }
         setTextPreview({
@@ -350,7 +320,7 @@ const Lightbox = ({
           retryable: false
         });
       } catch (error) {
-        if (!isActive) return;
+        if (controller.signal.aborted) return;
         const retryable = typeof error?.retryable === 'boolean' ? error.retryable : true;
         setTextPreview({
           status: 'error',
@@ -364,9 +334,9 @@ const Lightbox = ({
     };
     loadText();
     return () => {
-      isActive = false;
+      controller.abort();
     };
-  }, [open, selectedEntry, shouldGateLargeFile, canPreviewText, isText, isMarkdown, textRetryToken]);
+  }, [canPreviewText, isMarkdown, isText, open, previewSource, selectedPath, shouldGateLargeFile, textRetryToken]);
 
   useEffect(() => {
     if (open && isMarkdown) {
@@ -425,10 +395,9 @@ const Lightbox = ({
     };
   }, [open, selectedEntry?.path]);
 
-  if (!open || !selectedEntry || selectedEntry.isDir) return null;
+  if (!open || !selectedEntry || isDirectory) return null;
 
-  const previewSource = buildFileUrl(selectedEntry.path);
-  const pathValue = selectedEntry?.path || '';
+  const pathValue = selectedPath;
   const pathLabel = pathValue ? `/${pathValue}` : '/';
 
   return (
@@ -473,7 +442,7 @@ const Lightbox = ({
           />
           {shouldGateLargeFile && (
             <LightboxLargeFileWarning
-              sizeLabel={formatSize(selectedEntry.size)}
+              sizeLabel={formatSize(selectedSize)}
               disableWarningsChecked={disableLargeFileWarningsChecked}
               onToggleDisableWarnings={setDisableLargeFileWarningsChecked}
               onLoadFile={() => {
@@ -486,7 +455,7 @@ const Lightbox = ({
               onClose={onClose}
             />
           )}
-          {!shouldGateLargeFile && canPreviewVideo && canPreviewImage && (isImage || isVideo) && (
+          {!shouldGateLargeFile && imageCapabilityKnown && canPreviewVideo && canPreviewImage && (isImage || isVideo) && (
             <div className={`lightbox-media${mediaLoading ? ' is-loading' : ''}${isSvg ? ' is-svg' : ''}`}>
               {mediaLoading && <div className="media-loader" aria-hidden="true" />}
               {isImage && (
@@ -494,7 +463,7 @@ const Lightbox = ({
                   key={previewSource}
                   ref={imageRef}
                   src={previewSource}
-                  alt={selectedEntry.name}
+                  alt={selectedName}
                   loading="eager"
                   onLoad={(event) => {
                     setMediaLoading(false);
@@ -534,6 +503,11 @@ const Lightbox = ({
               )}
             </div>
           )}
+          {!shouldGateLargeFile && isImage && imageSupportStatus === 'pending' && (
+            <div className="lightbox-media is-loading">
+              <div className="media-loader" aria-hidden="true" />
+            </div>
+          )}
           {!shouldGateLargeFile && isAudio && canPreviewAudio && (
             <audio
               controls
@@ -553,7 +527,7 @@ const Lightbox = ({
             <iframe
               className="lightbox-iframe"
               src={previewSource}
-              title={selectedEntry.name}
+              title={selectedName}
             />
           )}
           {!shouldGateLargeFile && isText && (
@@ -612,8 +586,8 @@ const Lightbox = ({
             <div className="lightbox-meta-text">
               <span className="lightbox-name">{selectedEntry.name}</span>
               <div className="lightbox-meta-sub">
-                {Number.isFinite(selectedEntry.size) && selectedEntry.size > 0 && (
-                  <span className="lightbox-size">{formatSize(selectedEntry.size)}</span>
+                {Number.isFinite(selectedSize) && selectedSize > 0 && (
+                  <span className="lightbox-size">{formatSize(selectedSize)}</span>
                 )}
                 {shouldShowDimensions && (
                   <span
@@ -671,8 +645,8 @@ const Lightbox = ({
           </div>
           <a
             className="lightbox-download"
-            href={buildFileUrl(selectedEntry.path)}
-            download={selectedEntry.name}
+            href={previewSource}
+            download={selectedName}
           >
             <IconDownload />
             Download
