@@ -47,13 +47,11 @@ const resetMediaState = ({
   setDisableLargeFileWarningsChecked,
   setImagePreviewFailed,
   setLargeFileWarningDismissed,
-  setMediaLoading,
   setMediaMeta,
   setVideoPreviewFailed
 }) => {
   setLargeFileWarningDismissed(false);
   setDisableLargeFileWarningsChecked(false);
-  setMediaLoading(false);
   setMediaMeta(EMPTY_MEDIA_META);
   setVideoPreviewFailed(false);
   setImagePreviewFailed(false);
@@ -73,10 +71,10 @@ const resetClosedState = ({
     setDisableLargeFileWarningsChecked,
     setImagePreviewFailed,
     setLargeFileWarningDismissed,
-    setMediaLoading,
     setMediaMeta,
     setVideoPreviewFailed
   });
+  setMediaLoading(false);
   setTextPreview(IDLE_TEXT_PREVIEW);
   setImageSupportStatus('supported');
 };
@@ -399,14 +397,15 @@ export const useLightboxController = ({
 
     cancelPendingIdlePreload();
     cancelPendingPreload(selectedPath);
-    setDisplayedImagePath('');
-    setMediaLoading(true);
+    const isWarmedImage = preloadedLightboxAssetKeys.has(selectedPath);
+    setDisplayedImagePath(isWarmedImage ? selectedPath : '');
+    setMediaLoading(!isWarmedImage);
 
     const controller = new AbortController();
 
     const prepareCurrentImage = async () => {
       try {
-        if (!preloadedLightboxAssetKeys.has(selectedPath)) {
+        if (!isWarmedImage) {
           const response = await fetch(previewSource, {
             signal: controller.signal,
             priority: 'high'
@@ -415,6 +414,7 @@ export const useLightboxController = ({
             throw new Error('Failed to load image preview');
           }
           await drainResponseBody(response);
+          preloadedLightboxAssetKeys.add(selectedPath);
         }
 
         if (controller.signal.aborted) return;
@@ -460,10 +460,10 @@ export const useLightboxController = ({
         setDisableLargeFileWarningsChecked,
         setImagePreviewFailed,
         setLargeFileWarningDismissed,
-        setMediaLoading,
         setMediaMeta,
         setVideoPreviewFailed
       });
+      setMediaLoading(false);
       onClose();
       return;
     }
@@ -471,7 +471,6 @@ export const useLightboxController = ({
       setDisableLargeFileWarningsChecked,
       setImagePreviewFailed,
       setLargeFileWarningDismissed,
-      setMediaLoading,
       setMediaMeta,
       setVideoPreviewFailed
     });
@@ -704,13 +703,16 @@ export const useLightboxController = ({
   }, [onNavigatePath, selectedEntry]);
 
   const handleImageLoad = useCallback((event) => {
+    if (selectedPath) {
+      preloadedLightboxAssetKeys.add(selectedPath);
+    }
     setMediaLoading(false);
     setMediaMeta({
       width: event.currentTarget.naturalWidth,
       height: event.currentTarget.naturalHeight,
       duration: null
     });
-  }, []);
+  }, [selectedPath]);
 
   const handleImageError = useCallback(() => {
     setMediaLoading(false);
