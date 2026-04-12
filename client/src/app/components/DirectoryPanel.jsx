@@ -1,17 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo } from 'react';
 import { formatSize } from '../../lib/format.js';
-import {
-  useContextMenuContext,
-  useDirectoryActionsContext,
-  useDirectoryDataContext,
-  useDownloadActionsContext,
-  useDownloadStateContext,
-  useSearchActionsContext,
-  useSearchStateContext,
-  useSelectionActionsContext,
-  useSelectionStateContext,
-  useViewContext
-} from '../contexts/index.js';
+import { useDirectoryPanelController } from '../hooks/useDirectoryPanelController.js';
 import {
   FileList,
   IconCheck2Square,
@@ -26,7 +15,7 @@ import {
   SortButtons
 } from './index.js';
 
-const DownloadConfirmModal = ({ summary, onCancel, onConfirm }) => {
+const DownloadConfirmModal = memo(({ summary, onCancel, onConfirm }) => {
   const warning = summary?.writerMode === 'memory'
     ? 'Your browser does not support streaming this download. If the download stalls, try a smaller set or another browser.'
     : '';
@@ -85,9 +74,11 @@ const DownloadConfirmModal = ({ summary, onCancel, onConfirm }) => {
       </div>
     </>
   );
-};
+});
 
-const DownloadProgressModal = ({
+DownloadConfirmModal.displayName = 'DownloadConfirmModal';
+
+const DownloadProgressModal = memo(({
   state,
   progressValue,
   progressMax,
@@ -194,9 +185,11 @@ const DownloadProgressModal = ({
       </div>
     </div>
   </>
-);
+));
 
-const DirectoryPanelHeader = ({
+DownloadProgressModal.displayName = 'DownloadProgressModal';
+
+const DirectoryPanelHeader = memo(({
   selectionMode,
   titleText,
   subLabel,
@@ -204,7 +197,8 @@ const DirectoryPanelHeader = ({
   sortKey,
   sortDir,
   onSortClick,
-  onSetSelectionMode
+  onEnableSelection,
+  onCancelSelection
 }) => (
   <div className="panel-header">
     <div>
@@ -223,7 +217,7 @@ const DirectoryPanelHeader = ({
             <button
               type="button"
               className="panel-action-btn is-emphasis"
-              onClick={() => onSetSelectionMode(false)}
+              onClick={onCancelSelection}
             >
               <IconClose />
               Cancel selection
@@ -232,7 +226,7 @@ const DirectoryPanelHeader = ({
             <button
               type="button"
               className="panel-action-btn"
-              onClick={() => onSetSelectionMode(true)}
+              onClick={onEnableSelection}
             >
               <IconCheck2Square />
               Select
@@ -243,9 +237,11 @@ const DirectoryPanelHeader = ({
       )}
     </div>
   </div>
-);
+));
 
-const DirectoryPanelBody = ({
+DirectoryPanelHeader.displayName = 'DirectoryPanelHeader';
+
+const DirectoryPanelBody = memo(({
   handlePanelBodyRef,
   contextMenu,
   onCloseContextMenu,
@@ -266,8 +262,7 @@ const DirectoryPanelBody = ({
   progressValue,
   progressMax,
   onCancelDownload,
-  onSetSelectionMode,
-  onResetDownloadState,
+  onDismissDownloadStatus,
   contentKey,
   searchLoading,
   searchError,
@@ -278,8 +273,9 @@ const DirectoryPanelBody = ({
   status,
   isNotFound,
   onRetryList,
-  onNavigate,
+  onNavigateRoot,
   lastGoodPath,
+  onNavigateLastGoodPath,
   rootLabel,
   entryCount,
   sortedEntries,
@@ -375,10 +371,7 @@ const DirectoryPanelBody = ({
         progressValue={progressValue}
         progressMax={progressMax}
         onCancel={onCancelDownload}
-        onDismiss={() => {
-          onSetSelectionMode(false);
-          onResetDownloadState();
-        }}
+        onDismiss={onDismissDownloadStatus}
       />
     )}
     <div className="directory-content" key={contentKey}>
@@ -464,7 +457,7 @@ const DirectoryPanelBody = ({
                     <button
                       type="button"
                       className="state-cta"
-                      onClick={() => onNavigate('')}
+                      onClick={onNavigateRoot}
                     >
                       Go to archive root
                     </button>
@@ -472,7 +465,7 @@ const DirectoryPanelBody = ({
                       <button
                         type="button"
                         className="state-cta"
-                        onClick={() => onNavigate(lastGoodPath)}
+                        onClick={onNavigateLastGoodPath}
                       >
                         Go to last available folder
                       </button>
@@ -493,7 +486,7 @@ const DirectoryPanelBody = ({
                     <button
                       type="button"
                       className="state-cta"
-                      onClick={() => onNavigate(lastGoodPath)}
+                      onClick={onNavigateLastGoodPath}
                     >
                       View {lastGoodPath ? lastGoodPath : rootLabel}
                     </button>
@@ -530,324 +523,79 @@ const DirectoryPanelBody = ({
       )}
     </div>
   </div>
-);
+));
 
-const DirectoryPanel = () => {
-  const {
-    directory,
-    currentPath,
-    currentPathName,
-    status,
-    lastGoodPath,
-    entries,
-    useWindowScroll
-  } = useDirectoryDataContext() || {};
-  const { onNavigate, onSelect, onRetryList } = useDirectoryActionsContext() || {};
-  const rootLabel = 'Archive';
-  const { viewMode, zoomLevel } = useViewContext();
-  const {
-    selectedPath,
-    selectionMode,
-    selectedPaths,
-    selectedCount = 0
-  } = useSelectionStateContext() || {};
-  const {
-    onToggleSelection,
-    onSetSelectionMode,
-    onSelectAllFiles
-  } = useSelectionActionsContext() || {};
-  const {
-    downloadState,
-    downloadPrompt
-  } = useDownloadStateContext() || {};
-  const {
-    onRequestDownload,
-    onConfirmDownload,
-    onCancelDownloadPrompt,
-    onCancelDownload,
-    onResetDownloadState
-  } = useDownloadActionsContext() || {};
-  const {
-    contextMenu,
-    onOpenContextMenu,
-    onCloseContextMenu,
-    onContextSelect,
-    onContextDownload,
-    onContextShare,
-    onContextCancelSelection,
-    onContextGoToEntry
-  } = useContextMenuContext() || {};
-  const { searchQuery, searchResults, searchStatus } = useSearchStateContext() || {};
-  const { onRetrySearch, onClearSearch } = useSearchActionsContext() || {};
-  const hasError = Boolean(status.error);
-  const isNotFound = status?.code === 404;
-  const isSearchActive = Boolean(searchQuery);
-  const searchCount = searchResults?.length || 0;
-  const searchLoading = isSearchActive && searchStatus?.loading;
-  const searchError = isSearchActive && searchStatus?.error;
-  const isRoot = !currentPath;
-  const hasSelection = selectedCount > 0;
-  const isDownloading = downloadState?.status === 'listing'
-    || downloadState?.status === 'downloading'
-    || downloadState?.status === 'finalizing';
-  const hasDownloadStatus = downloadState?.status && downloadState.status !== 'idle';
-  const progressMax = downloadState?.totalBytes || downloadState?.totalFiles || 1;
-  const progressValue = downloadState?.totalBytes
-    ? downloadState?.processedBytes
-    : downloadState?.processedFiles;
-  const downloadSummary = downloadPrompt?.summary;
-  const showProgressModal = hasDownloadStatus;
-  const contextMenuEntryPath = contextMenu?.open && contextMenu?.type === 'entry'
-    ? (contextMenu.entry?.path || '')
-    : '';
-  const [sortKey, setSortKey] = useState('name');
-  const [sortDir, setSortDir] = useState('asc');
-  const titleText = isSearchActive
-    ? 'Search results'
-    : isNotFound
-      ? 'Not found'
-      : (hasError ? '' : (isRoot ? rootLabel : (directory?.current?.name || currentPathName || rootLabel)));
-  const searchResultLabel = `${searchCount} result${searchCount === 1 ? '' : 's'} for "${searchQuery}"`;
-  const contentKey = isSearchActive
-    ? `search:${searchQuery || 'results'}:${searchStatus?.loading ? 'loading' : 'done'}:${searchResults?.length || 0}`
-    : `path:${currentPath || 'root'}`;
-  const subLabel = isSearchActive
-    ? (
-      searchLoading
-        ? `Searching "${searchQuery}"...`
-        : searchError
-          ? 'Search failed'
-          : `${searchResultLabel}${searchStatus?.truncated ? ` (showing first ${searchCount})` : ''}`
-    )
-    : (hasError
-      ? ''
-      : directory
-        ? `${directory.stats.dirs} folders, ${directory.stats.files} files`
-        : 'Loading...');
-  const baseEntries = useMemo(
-    () => (Array.isArray(entries) ? entries : []),
-    [entries]
-  );
-  const collator = useMemo(() => new Intl.Collator(undefined, { sensitivity: 'base' }), []);
-  const sortedEntries = useMemo(() => {
-    if (!baseEntries.length) return baseEntries;
-    const list = [...baseEntries];
-    list.sort((a, b) => {
-      if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
-      let compare = 0;
-      if (sortKey === 'name') {
-        compare = collator.compare(a.name || '', b.name || '');
-      } else if (sortKey === 'size') {
-        compare = (a.size || 0) - (b.size || 0);
-      }
-      if (compare === 0) {
-        compare = collator.compare(a.name || '', b.name || '');
-      }
-      return sortDir === 'desc' ? -compare : compare;
-    });
-    return list;
-  }, [baseEntries, collator, sortKey, sortDir]);
-  const entryCount = sortedEntries.length;
-  const fileEntries = useMemo(
-    () => sortedEntries.filter((entry) => !entry?.isDir),
-    [sortedEntries]
-  );
-  const selectedFileCount = useMemo(
-    () => fileEntries.reduce((count, entry) => (
-      selectedPaths?.has(entry.path) ? count + 1 : count
-    ), 0),
-    [fileEntries, selectedPaths]
-  );
-  const canSelectAllFiles = fileEntries.length > 0 && selectedFileCount < fileEntries.length;
-  const panelBodyRef = useRef(null);
-  const [panelBodyNode, setPanelBodyNode] = useState(null);
-  const handlePanelBodyRef = useCallback((node) => {
-    panelBodyRef.current = node;
-    setPanelBodyNode((prev) => (prev === node ? prev : node));
-  }, []);
+DirectoryPanelBody.displayName = 'DirectoryPanelBody';
 
-  const handleSortClick = useCallback((key) => {
-    if (sortKey === key) {
-      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-      return;
-    }
-    setSortKey(key);
-    setSortDir('asc');
-  }, [sortKey]);
-
-  const handleSelectAllFiles = useCallback(() => {
-    onSelectAllFiles?.(sortedEntries);
-  }, [onSelectAllFiles, sortedEntries]);
-
-  const handleContextSelectAllFiles = useCallback(() => {
-    onSelectAllFiles?.(sortedEntries);
-    onCloseContextMenu?.();
-  }, [onCloseContextMenu, onSelectAllFiles, sortedEntries]);
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key !== 'Escape') return;
-      if (downloadPrompt?.open) {
-        onCancelDownloadPrompt();
-        return;
-      }
-      if (hasDownloadStatus) {
-        if (isDownloading) {
-          onCancelDownload();
-          return;
-        }
-        onSetSelectionMode(false);
-        onResetDownloadState();
-        return;
-      }
-      if (selectionMode) {
-        onSetSelectionMode(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    downloadPrompt,
-    hasDownloadStatus,
-    isDownloading,
-    onCancelDownload,
-    onCancelDownloadPrompt,
-    onResetDownloadState,
-    onSetSelectionMode,
-    selectionMode
-  ]);
-
-  useEffect(() => {
-    if (isSearchActive) return;
-    const panelBody = panelBodyRef.current;
-    if (!panelBody) return;
-    if (panelBody.scrollHeight > panelBody.clientHeight) {
-      panelBody.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }
-  }, [currentPath, isSearchActive]);
-
-  useEffect(() => {
-    if (isSearchActive) return;
-    if (!useWindowScroll) return;
-    if (selectionMode) return;
-    if (selectedPath) return;
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [currentPath, isSearchActive, selectedPath, selectionMode, useWindowScroll]);
-
-  return (
-    <div
-      className={`panel list-panel${selectionMode ? ' selection-active' : ''}${hasError ? ' has-error' : ''}`}
-    >
-      <DirectoryPanelHeader
-        selectionMode={selectionMode}
-        titleText={titleText}
-        subLabel={subLabel}
-        hasError={hasError}
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onSortClick={handleSortClick}
-        onSetSelectionMode={onSetSelectionMode}
-      />
-      <DirectoryPanelBody
-        handlePanelBodyRef={handlePanelBodyRef}
-        contextMenu={contextMenu}
-        onCloseContextMenu={onCloseContextMenu}
-        canSelectAllFiles={canSelectAllFiles}
-        onContextSelectAllFiles={handleContextSelectAllFiles}
-        onContextCancelSelection={onContextCancelSelection}
-        onContextSelect={onContextSelect}
-        onContextDownload={onContextDownload}
-        onContextShare={onContextShare}
-        onContextGoToEntry={onContextGoToEntry}
-        isSearchActive={isSearchActive}
-        downloadPrompt={downloadPrompt}
-        downloadSummary={downloadSummary}
-        onCancelDownloadPrompt={onCancelDownloadPrompt}
-        onConfirmDownload={onConfirmDownload}
-        showProgressModal={showProgressModal}
-        downloadState={downloadState}
-        progressValue={progressValue}
-        progressMax={progressMax}
-        onCancelDownload={onCancelDownload}
-        onSetSelectionMode={onSetSelectionMode}
-        onResetDownloadState={onResetDownloadState}
-        contentKey={contentKey}
-        searchLoading={searchLoading}
-        searchError={searchError}
-        searchStatus={searchStatus}
-        searchCount={searchCount}
-        onRetrySearch={onRetrySearch}
-        onClearSearch={onClearSearch}
-        status={status}
-        isNotFound={isNotFound}
-        onRetryList={onRetryList}
-        onNavigate={onNavigate}
-        lastGoodPath={lastGoodPath}
-        rootLabel={rootLabel}
-        entryCount={entryCount}
-        sortedEntries={sortedEntries}
-        viewMode={viewMode}
-        onSelect={onSelect}
-        selectedPath={selectedPath}
-        selectionMode={selectionMode}
-        selectedPaths={selectedPaths}
-        onToggleSelection={onToggleSelection}
-        onOpenContextMenu={onOpenContextMenu}
-        contextMenuEntryPath={contextMenuEntryPath}
-        zoomLevel={zoomLevel}
-        panelBodyNode={panelBodyNode}
-        useWindowScroll={useWindowScroll}
-      />
-      {selectionMode && (
-        <div
-          className="selection-bar"
-          role="region"
-          aria-label="Selection mode"
-        >
-          <div className="selection-bar-top">
-            <div className="selection-bar-info">
-              <span className="selection-bar-icon" aria-hidden="true">
-                <IconCheck2Square />
-              </span>
-              <div className="selection-bar-summary">
-                <div className="selection-bar-title">Select items</div>
-                <div className="selection-bar-meta">
-                  {selectedCount} selected
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="panel-action-btn is-secondary selection-bar-cancel"
-              onClick={() => onSetSelectionMode(false)}
-              disabled={isDownloading}
-            >
-              <IconClose />
-              Cancel
-            </button>
-          </div>
-          <div className="selection-bar-actions">
-            <button
-              type="button"
-              className="panel-action-btn is-secondary selection-bar-select-all"
-              onClick={handleSelectAllFiles}
-              disabled={!canSelectAllFiles || isDownloading}
-            >
-              <IconCheckCircleFill />
-              Select all files
-            </button>
-            <button
-              type="button"
-              className="panel-action-btn is-primary selection-bar-download"
-              onClick={onRequestDownload}
-              disabled={!hasSelection || isDownloading}
-            >
-              <IconDownload />
-              {isDownloading ? 'Downloading...' : `Download${hasSelection ? ` (${selectedCount})` : ''}`}
-            </button>
+const DirectoryPanelSelectionBar = memo(({
+  selectedCount,
+  canSelectAllFiles,
+  isDownloading,
+  hasSelection,
+  onCancelSelection,
+  onSelectAllFiles,
+  onRequestDownload
+}) => (
+  <div
+    className="selection-bar"
+    role="region"
+    aria-label="Selection mode"
+  >
+    <div className="selection-bar-top">
+      <div className="selection-bar-info">
+        <span className="selection-bar-icon" aria-hidden="true">
+          <IconCheck2Square />
+        </span>
+        <div className="selection-bar-summary">
+          <div className="selection-bar-title">Select items</div>
+          <div className="selection-bar-meta">
+            {selectedCount} selected
           </div>
         </div>
-      )}
+      </div>
+      <button
+        type="button"
+        className="panel-action-btn is-secondary selection-bar-cancel"
+        onClick={onCancelSelection}
+        disabled={isDownloading}
+      >
+        <IconClose />
+        Cancel
+      </button>
+    </div>
+    <div className="selection-bar-actions">
+      <button
+        type="button"
+        className="panel-action-btn is-secondary selection-bar-select-all"
+        onClick={onSelectAllFiles}
+        disabled={!canSelectAllFiles || isDownloading}
+      >
+        <IconCheckCircleFill />
+        Select all files
+      </button>
+      <button
+        type="button"
+        className="panel-action-btn is-primary selection-bar-download"
+        onClick={onRequestDownload}
+        disabled={!hasSelection || isDownloading}
+      >
+        <IconDownload />
+        {isDownloading ? 'Downloading...' : `Download${hasSelection ? ` (${selectedCount})` : ''}`}
+      </button>
+    </div>
+  </div>
+));
+
+DirectoryPanelSelectionBar.displayName = 'DirectoryPanelSelectionBar';
+
+const DirectoryPanel = () => {
+  const { panelClassName, headerProps, bodyProps, selectionBarProps } = useDirectoryPanelController();
+
+  return (
+    <div className={panelClassName}>
+      <DirectoryPanelHeader {...headerProps} />
+      <DirectoryPanelBody {...bodyProps} />
+      {selectionBarProps && <DirectoryPanelSelectionBar {...selectionBarProps} />}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { setUrlState } from '../../lib/urlState.js';
 import { useUrlSync } from './useUrlSync.js';
 
@@ -19,7 +19,9 @@ const useAppRouting = ({
   currentPath,
   currentPathName,
   searchQuery,
-  searchHeaderRef,
+  searchInputValue,
+  setSearchInputValue,
+  setSearchFocused,
   clearSearch,
   submitSearch,
   navigateTo,
@@ -32,6 +34,10 @@ const useAppRouting = ({
   useEffect(() => {
     searchStateRef.current.searchQuery = searchQuery;
   }, [searchQuery]);
+
+  useEffect(() => {
+    searchStateRef.current.searchInput = searchInputValue;
+  }, [searchInputValue]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -54,28 +60,34 @@ const useAppRouting = ({
     setMetaTagContent('name', 'twitter:image', image);
   }, [baseTitle, currentPath, currentPathName, searchQuery]);
 
-  const clearSearchState = () => {
-    searchHeaderRef.current?.setSearchValue('');
-    searchHeaderRef.current?.setSearchFocused(false);
+  const clearSearchState = useCallback((options = {}) => {
+    const { focus = false } = options;
+    setSearchInputValue('');
+    setSearchFocused(focus);
     searchStateRef.current.searchInput = '';
     clearSearch();
-  };
+  }, [clearSearch, setSearchFocused, setSearchInputValue]);
 
-  const handleSearchValueChange = (value) => {
+  const handleSearchValueChange = useCallback((value) => {
+    setSearchInputValue(value);
     searchStateRef.current.searchInput = value;
-  };
+  }, [setSearchInputValue]);
 
-  const setSearchInputValue = (value) => {
-    searchHeaderRef.current?.setSearchValue(value);
+  const handleSearchFocusChange = useCallback((focused) => {
+    setSearchFocused(focused);
+  }, [setSearchFocused]);
+
+  const setSearchInput = useCallback((value) => {
+    setSearchInputValue(value);
     searchStateRef.current.searchInput = value;
-  };
+  }, [setSearchInputValue]);
 
-  const hasSearchState = () => {
-    const inputValue = searchStateRef.current.searchInput;
-    return Boolean(searchQuery || inputValue.trim());
-  };
+  const hasSearchState = useCallback(
+    () => Boolean(searchQuery || searchInputValue.trim()),
+    [searchInputValue, searchQuery]
+  );
 
-  const applySearch = (value) => {
+  const applySearch = useCallback((value) => {
     const trimmed = value.trim();
     if (trimmed) {
       const fallbackPath = currentPath ?? lastBrowsePath ?? '';
@@ -83,26 +95,27 @@ const useAppRouting = ({
     }
     submitSearch(trimmed);
     return trimmed;
-  };
+  }, [currentPath, lastBrowsePath, setLastBrowsePath, submitSearch]);
 
-  const handleSearchSubmit = (value) => {
+  const handleSearchSubmit = useCallback((value) => {
     const trimmed = applySearch(value);
+    setSearchFocused(Boolean(trimmed));
     if (trimmed) {
       setUrlState({ search: trimmed });
     } else {
       setUrlState({ path: currentPath, preview: '' });
     }
-  };
+  }, [applySearch, currentPath, setSearchFocused]);
 
-  const handleCloseSearch = () => {
+  const handleCloseSearch = useCallback(() => {
     const returnPath = lastBrowsePath ?? '';
-    clearSearchState();
+    clearSearchState({ focus: Boolean(searchQuery) });
     void navigateTo(returnPath);
-  };
+  }, [clearSearchState, lastBrowsePath, navigateTo, searchQuery]);
 
   useUrlSync({
     clearSearch: clearSearchState,
-    setSearchInput: setSearchInputValue,
+    setSearchInput,
     applySearch,
     navigateTo,
     setLightboxOpen,
@@ -113,7 +126,7 @@ const useAppRouting = ({
     searchStateRef,
     clearSearchState,
     handleSearchValueChange,
-    setSearchInputValue,
+    handleSearchFocusChange,
     hasSearchState,
     handleSearchSubmit,
     handleCloseSearch

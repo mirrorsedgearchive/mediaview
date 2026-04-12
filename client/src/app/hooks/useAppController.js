@@ -10,6 +10,10 @@ import { useContextMenu } from './useContextMenu.js';
 import { useDownloadPrompt } from './useDownloadPrompt.js';
 import { useLightboxState } from './useLightboxState.js';
 import { useMediaQuery } from './useMediaQuery.js';
+import { useAppProviderValues } from './useAppProviderValues.js';
+import { useAppChromeProps } from './useAppChromeProps.js';
+import { useAppPanelsProps } from './useAppPanelsProps.js';
+import { useAppOverlaysProps } from './useAppOverlaysProps.js';
 
 const useAppController = () => {
   const {
@@ -66,8 +70,9 @@ const useAppController = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
   const [footerOpen, setFooterOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { theme, setTheme, warnOnLargeFiles, setWarnOnLargeFiles } = useAppPreferences();
-  const searchHeaderRef = useRef(null);
   const layoutRef = useRef(null);
   const loadDirectoryRef = useRef(loadDirectory);
   const isSearchMode = Boolean(searchQuery);
@@ -119,7 +124,7 @@ const useAppController = () => {
       replaceUrl = false,
       openLightbox = true
     } = options;
-    const { selection, shouldLightbox } = await loadDirectoryRef.current(pathValue, {
+    const { selection: nextSelection, shouldLightbox } = await loadDirectoryRef.current(pathValue, {
       selectPath,
       openLightbox
     });
@@ -128,16 +133,17 @@ const useAppController = () => {
       setUrlState(
         {
           path: pathValue,
-          preview: shouldLightbox && selection ? selection.name : ''
+          preview: shouldLightbox && nextSelection ? nextSelection.name : ''
         },
         { replace: replaceUrl }
       );
     }
-  }, [setLightboxOpen]);
+  }, []);
 
   const {
     clearSearchState,
     handleSearchValueChange,
+    handleSearchFocusChange,
     hasSearchState,
     handleSearchSubmit,
     handleCloseSearch
@@ -146,7 +152,9 @@ const useAppController = () => {
     currentPath,
     currentPathName,
     searchQuery,
-    searchHeaderRef,
+    searchInputValue,
+    setSearchInputValue,
+    setSearchFocused: setIsSearchFocused,
     clearSearch,
     submitSearch,
     navigateTo,
@@ -261,186 +269,120 @@ const useAppController = () => {
     retryTree?.();
     void loadDirectory(currentPath, { force: true });
   }, [currentPath, loadDirectory, retryTree]);
+
   const showConnectionLightbox = (
     ((status.error && status.retryable) || (treeStatus.error && treeStatus.retryable))
     && !status.loading
     && !treeStatus.loading
   );
 
-  const directoryDataValue = useMemo(() => ({
+  const { viewValue, providerValues } = useAppProviderValues({
     directory,
     currentPath,
     currentPathName,
     status,
     lastGoodPath,
-    entries: activeEntries,
-    useWindowScroll: isTreeHidden
-  }), [
     activeEntries,
-    currentPath,
-    currentPathName,
-    directory,
     isTreeHidden,
-    lastGoodPath,
-    status
-  ]);
-
-  const directoryActionsValue = useMemo(() => ({
-    onSelect: handleOpen,
-    onNavigate: handleNavigate,
-    onRetryList: handleRetryList
-  }), [handleNavigate, handleOpen, handleRetryList]);
-
-  const selectionStateValue = useMemo(() => ({
-    selectedPath: selectionMode ? '' : (selected?.path || pendingSelectionPath),
+    handleOpen,
+    handleNavigate,
+    handleRetryList,
     selectionMode,
-    selectedPaths,
-    selectedCount
-  }), [
-    pendingSelectionPath,
     selected,
-    selectedCount,
+    pendingSelectionPath,
     selectedPaths,
-    selectionMode
-  ]);
-
-  const selectionActionsValue = useMemo(() => ({
-    onToggleSelection: toggleSelection,
-    onSetSelectionMode: setSelectionMode,
-    onSelectAllFiles: handleSelectAllFiles
-  }), [handleSelectAllFiles, setSelectionMode, toggleSelection]);
-
-  const downloadStateValue = useMemo(() => ({
+    selectedCount,
+    toggleSelection,
+    setSelectionMode,
+    handleSelectAllFiles,
     downloadState,
-    downloadPrompt
-  }), [downloadPrompt, downloadState]);
-
-  const downloadActionsValue = useMemo(() => ({
-    onRequestDownload: handleRequestDownload,
-    onConfirmDownload: handleConfirmDownload,
-    onCancelDownloadPrompt: handleCancelDownloadPrompt,
-    onCancelDownload: cancelDownload,
-    onResetDownloadState: resetDownloadState
-  }), [
-    cancelDownload,
-    handleCancelDownloadPrompt,
-    handleConfirmDownload,
+    downloadPrompt,
     handleRequestDownload,
-    resetDownloadState
-  ]);
-
-  const contextMenuValue = useMemo(() => ({
+    handleConfirmDownload,
+    handleCancelDownloadPrompt,
+    cancelDownload,
+    resetDownloadState,
     contextMenu,
-    onOpenContextMenu: openContextMenu,
-    onCloseContextMenu: closeContextMenu,
-    onContextSelect: handleContextSelect,
-    onContextDownload: handleContextDownload,
-    onContextShare: handleContextShare,
-    onContextCancelSelection: handleContextCancelSelection,
-    onContextGoToEntry: handleContextGoToEntry
-  }), [
+    openContextMenu,
     closeContextMenu,
-    contextMenu,
-    handleContextCancelSelection,
+    handleContextSelect,
     handleContextDownload,
     handleContextShare,
+    handleContextCancelSelection,
     handleContextGoToEntry,
-    handleContextSelect,
-    openContextMenu
-  ]);
-
-  const searchStateValue = useMemo(() => ({
     searchQuery,
     searchResults,
-    searchStatus
-  }), [searchQuery, searchResults, searchStatus]);
-
-  const searchActionsValue = useMemo(() => ({
-    onRetrySearch: retrySearch,
-    onClearSearch: handleCloseSearch
-  }), [handleCloseSearch, retrySearch]);
-
-  const viewValue = useMemo(() => ({
+    searchStatus,
+    retrySearch,
+    handleCloseSearch,
     viewMode,
     setViewMode,
     zoomLevel,
     setZoomLevel
-  }), [setViewMode, setZoomLevel, viewMode, zoomLevel]);
+  });
+
+  const appChromeProps = useAppChromeProps({
+    handleNavigateRoot,
+    searchInputValue,
+    searchQuery,
+    isSearchFocused,
+    handleSearchValueChange,
+    handleSearchFocusChange,
+    handleSearchSubmit,
+    handleCloseSearch,
+    handleToggleFooter,
+    handleOpenSettings,
+    isTreeHidden,
+    footerOpen,
+    status,
+    lastGoodPath,
+    currentPath,
+    handleNavigate
+  });
+
+  const panelsProps = useAppPanelsProps({
+    layoutRef,
+    treeData,
+    searchQuery,
+    currentPath,
+    handleToggle,
+    collapseAll,
+    expandToCurrentPath,
+    handleNavigate,
+    treeStatus,
+    retryTree,
+    handleFooterOverlayClick
+  });
+
+  const overlaysProps = useAppOverlaysProps({
+    showConnectionLightbox,
+    handleRetryConnection,
+    lightboxOpen,
+    selectedEntry,
+    lightboxEntries,
+    activeLightboxIndex,
+    handleClose,
+    handlePrev,
+    handleNext,
+    handleShareEntry,
+    isTreeHidden,
+    handleNavigateFromLightbox,
+    warnOnLargeFiles,
+    setWarnOnLargeFiles,
+    settingsOpen,
+    handleCloseSettings,
+    theme,
+    setTheme,
+    snackbar,
+    handleDismissSnackbar
+  });
 
   return {
     viewValue,
-    appChromeProps: {
-      onNavigateRoot: handleNavigateRoot,
-      searchQuery,
-      searchHeaderRef,
-      onSearchValueChange: handleSearchValueChange,
-      onSearchSubmit: handleSearchSubmit,
-      onSearchClear: handleCloseSearch,
-      onToggleFooter: handleToggleFooter,
-      onOpenSettings: handleOpenSettings,
-      showFooterToggle: !isTreeHidden,
-      footerOpen,
-      breadcrumbsPath: status.error ? lastGoodPath : currentPath,
-      onNavigate: handleNavigate,
-      isPathStale: Boolean(status.error)
-    },
-    providerValues: {
-      directoryDataValue,
-      directoryActionsValue,
-      selectionStateValue,
-      selectionActionsValue,
-      downloadStateValue,
-      downloadActionsValue,
-      contextMenuValue,
-      searchStateValue,
-      searchActionsValue
-    },
-    panelsProps: {
-      layoutRef,
-      tree: treeData,
-      treeCurrentPath: searchQuery ? null : currentPath,
-      onToggleTree: handleToggle,
-      onCollapseAll: collapseAll,
-      onExpandCurrent: expandToCurrentPath,
-      onNavigate: handleNavigate,
-      treeStatus,
-      onRetryTree: retryTree,
-      onFooterOverlayClick: handleFooterOverlayClick
-    },
-    overlaysProps: {
-      connectionLightboxProps: {
-        open: showConnectionLightbox,
-        onRetry: handleRetryConnection
-      },
-      lightboxProps: {
-        open: lightboxOpen,
-        selectedEntry,
-        lightboxEntries,
-        activeIndex: activeLightboxIndex,
-        onClose: handleClose,
-        onPrev: handlePrev,
-        onNext: handleNext,
-        onShareEntry: handleShareEntry,
-        showSideNav: !isTreeHidden,
-        showPath: true,
-        onNavigatePath: handleNavigateFromLightbox,
-        warnOnLargeFiles,
-        onDisableLargeFileWarnings: () => setWarnOnLargeFiles(false)
-      },
-      settingsModalProps: {
-        open: settingsOpen,
-        onClose: handleCloseSettings,
-        theme,
-        onThemeChange: setTheme,
-        warnOnLargeFiles,
-        onWarnOnLargeFilesChange: setWarnOnLargeFiles
-      },
-      snackbarProps: {
-        open: snackbar.open,
-        message: snackbar.message,
-        onClose: handleDismissSnackbar
-      }
-    },
+    appChromeProps,
+    providerValues,
+    panelsProps,
+    overlaysProps,
     isTreeHidden,
     footerOpen
   };
