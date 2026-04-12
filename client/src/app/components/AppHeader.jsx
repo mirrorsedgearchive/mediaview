@@ -1,41 +1,26 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { IconClose, IconGear, IconInfoCircle, IconSearch, ViewToggle } from './index.js';
 import { useViewContext } from '../contexts/index.js';
 
-const AppHeader = forwardRef(({
+const AppHeader = ({
   onNavigateRoot,
+  searchValue,
   searchQuery,
+  isSearchFocused,
   onSearchValueChange,
+  onSearchFocusChange,
   onSearchSubmit,
   onSearchClear,
   onToggleFooter,
   onOpenSettings,
   showFooterToggle,
   footerOpen
-}, ref) => {
+}) => {
   const { viewMode, setViewMode, zoomLevel, setZoomLevel } = useViewContext();
   const inputRef = useRef(null);
-  const [searchValue, setSearchValue] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const searchValueRef = useRef('');
   const hasSearchText = Boolean(searchValue.trim() || searchQuery);
   const isSearchOpen = isSearchFocused || hasSearchText;
   const showStaging = import.meta.env.VITE_SHOW_STAGING === 'true';
-
-  useImperativeHandle(ref, () => ({
-    setSearchValue: (value) => {
-      searchValueRef.current = value;
-      setSearchValue(value);
-      onSearchValueChange?.(value);
-    },
-    getSearchValue: () => searchValueRef.current,
-    setSearchFocused: (value) => {
-      setIsSearchFocused(value);
-      if (value) {
-        inputRef.current?.focus();
-      }
-    }
-  }), [onSearchValueChange]);
 
   useEffect(() => {
     if (isSearchFocused) {
@@ -45,12 +30,12 @@ const AppHeader = forwardRef(({
 
   const handleSearchBlur = () => {
     if (!searchValue.trim() && !searchQuery) {
-      setIsSearchFocused(false);
+      onSearchFocusChange?.(false);
     }
   };
 
   const handleSearchOpen = () => {
-    setIsSearchFocused(true);
+    onSearchFocusChange?.(true);
     inputRef.current?.focus();
   };
 
@@ -58,18 +43,7 @@ const AppHeader = forwardRef(({
     event.preventDefault();
     onSearchSubmit(searchValue);
     if (searchValue.trim()) {
-      setIsSearchFocused(true);
-    }
-  };
-
-  const handleSearchClear = () => {
-    searchValueRef.current = '';
-    setSearchValue('');
-    onSearchValueChange?.('');
-    onSearchClear?.();
-    inputRef.current?.focus();
-    if (!searchQuery) {
-      setIsSearchFocused(false);
+      onSearchFocusChange?.(true);
     }
   };
 
@@ -85,7 +59,8 @@ const AppHeader = forwardRef(({
           <svg viewBox="0 0 1000 1000" role="img" aria-hidden="true">
             <path
               className="brand-mark-path"
-              d="M2.834 97.434s4.5 87.038 271.204 353.74l-88.128 192.08 236.146-68.892 125.37 330.002L684.12 557.446h315.268s-126.598-166.16-416.9-236.144C292.18 252.272 133.932 210.392 2.832 97.434"            />
+              d="M2.834 97.434s4.5 87.038 271.204 353.74l-88.128 192.08 236.146-68.892 125.37 330.002L684.12 557.446h315.268s-126.598-166.16-416.9-236.144C292.18 252.272 133.932 210.392 2.832 97.434"
+            />
           </svg>
         </span>
         <div>
@@ -112,19 +87,14 @@ const AppHeader = forwardRef(({
             type="search"
             placeholder="Search the archive"
             value={searchValue}
-            onChange={(event) => {
-              const { value } = event.target;
-              searchValueRef.current = value;
-              setSearchValue(value);
-              onSearchValueChange?.(value);
-            }}
-            onFocus={() => setIsSearchFocused(true)}
+            onChange={(event) => onSearchValueChange?.(event.target.value)}
+            onFocus={() => onSearchFocusChange?.(true)}
             onBlur={handleSearchBlur}
           />
           <button
             type="button"
             className={`search-clear${hasSearchText ? '' : ' is-hidden'}`}
-            onClick={handleSearchClear}
+            onClick={onSearchClear}
             aria-label="Close search results"
             title="Close search results"
           >
@@ -136,7 +106,7 @@ const AppHeader = forwardRef(({
             type="button"
             className={`topbar-info${footerOpen ? ' is-active' : ''}`}
             onClick={onToggleFooter}
-            aria-label="Info & legel"
+            aria-label="Info & legal"
             title="Info & legal"
           >
             <IconInfoCircle />
@@ -160,8 +130,6 @@ const AppHeader = forwardRef(({
       </div>
     </header>
   );
-});
-
-AppHeader.displayName = 'AppHeader';
+};
 
 export default AppHeader;

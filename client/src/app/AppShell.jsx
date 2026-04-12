@@ -25,9 +25,10 @@ import {
 
 const AppChrome = ({
   onNavigateRoot,
+  searchValue,
   searchQuery,
-  searchHeaderRef,
   onSearchValueChange,
+  onSearchFocusChange,
   onSearchSubmit,
   onSearchClear,
   onToggleFooter,
@@ -36,20 +37,23 @@ const AppChrome = ({
   footerOpen,
   breadcrumbsPath,
   onNavigate,
-  isPathStale
+  isPathStale,
+  isSearchFocused
 }) => (
   <>
     <AppHeader
       onNavigateRoot={onNavigateRoot}
+      searchValue={searchValue}
       searchQuery={searchQuery}
-      ref={searchHeaderRef}
       onSearchValueChange={onSearchValueChange}
+      onSearchFocusChange={onSearchFocusChange}
       onSearchSubmit={onSearchSubmit}
       onSearchClear={onSearchClear}
       onToggleFooter={onToggleFooter}
       onOpenSettings={onOpenSettings}
       showFooterToggle={showFooterToggle}
       footerOpen={footerOpen}
+      isSearchFocused={isSearchFocused}
     />
     <div className="breadcrumbs-bar">
       <Breadcrumbs

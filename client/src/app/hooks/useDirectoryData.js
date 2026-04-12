@@ -1,44 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
-import { searchArchive } from '../../lib/api.js';
 import { isViewableEntry } from '../../lib/fileTypes.js';
 import { useDirectoryTree } from './useDirectoryTree.js';
 import { useDirectoryCache } from './useDirectoryCache.js';
+import { useArchiveSearch } from './useArchiveSearch.js';
 
+const readStoredValue = (key) => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredValue = (key, value) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage write failures (private mode, blocked storage, etc.)
+  }
+};
+
+const viewModeKey = 'mediaview:viewMode';
+const zoomLevelKey = 'mediaview:zoomLevel';
 
 export const useDirectoryData = () => {
-  const readStoredValue = (key) => {
-    if (typeof window === 'undefined') return null;
-    try {
-      return window.localStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  };
-
-  const writeStoredValue = (key, value) => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem(key, value);
-    } catch {
-      // Ignore storage write failures (private mode, blocked storage, etc.)
-    }
-  };
-
-  const viewModeKey = 'mediaview:viewMode';
-  const zoomLevelKey = 'mediaview:zoomLevel';
   const [directory, setDirectory] = useState(null);
   const [currentPath, setCurrentPath] = useState('');
   const [selected, setSelected] = useState(null);
   const [pendingSelection, setPendingSelection] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchStatus, setSearchStatus] = useState({
-    loading: false,
-    error: null,
-    truncated: false,
-    retryable: false,
-  });
-  const [searchRetryToken, setSearchRetryToken] = useState(0);
+  const search = useArchiveSearch();
   const [viewMode, setViewMode] = useState(() => {
     const stored = readStoredValue(viewModeKey);
     return stored === 'list' || stored === 'grid' ? stored : 'grid';
@@ -75,26 +67,6 @@ export const useDirectoryData = () => {
   const currentPathRef = useRef('');
   const [lastGoodPath, setLastGoodPath] = useState('');
   const resolvePathRef = useRef(0);
-
-  const submitSearch = (nextValue) => {
-    const trimmed = nextValue.trim();
-    if (!trimmed) {
-      setSearchResults([]);
-      setSearchStatus({ loading: false, error: null, truncated: false, retryable: false });
-    }
-    if (trimmed) {
-      setSearchResults([]);
-      setSearchStatus({ loading: true, error: null, truncated: false, retryable: false });
-    }
-    setSearchQuery(trimmed);
-  };
-
-  const clearSearch = () => {
-    setSearchQuery('');
-    setSearchResults([]);
-    setSearchStatus({ loading: false, error: null, truncated: false, retryable: false });
-    setSearchRetryToken(0);
-  };
 
   const setLastGoodPathValue = (value, options = {}) => {
     const { allowEmpty = false } = options;
@@ -256,41 +228,6 @@ export const useDirectoryData = () => {
   }, [currentPath]);
 
   useEffect(() => {
-    let isActive = true;
-    if (!searchQuery) return undefined;
-    searchArchive(searchQuery)
-      .then((data) => {
-        if (!isActive) return;
-        const results = Array.isArray(data.results) ? data.results : [];
-        setSearchResults(results);
-        setSearchStatus({
-          loading: false,
-          error: null,
-          truncated: Boolean(data.truncated),
-          retryable: false,
-        });
-      })
-      .catch((error) => {
-        if (!isActive) return;
-        setSearchResults([]);
-        setSearchStatus({
-          loading: false,
-          error: error.message,
-          truncated: false,
-          retryable: Boolean(error.retryable)
-        });
-      });
-    return () => {
-      isActive = false;
-    };
-  }, [searchQuery, searchRetryToken]);
-
-  const retrySearch = () => {
-    if (!searchQuery) return;
-    setSearchRetryToken((prev) => prev + 1);
-  };
-
-  useEffect(() => {
     writeStoredValue(viewModeKey, viewMode);
   }, [viewMode]);
 
@@ -316,14 +253,7 @@ export const useDirectoryData = () => {
       expandToCurrentPath,
       retryTree
     },
-    search: {
-      query: searchQuery,
-      submit: submitSearch,
-      clear: clearSearch,
-      results: searchResults,
-      status: searchStatus,
-      retry: retrySearch
-    },
+    search,
     view: {
       mode: viewMode,
       setMode: setViewMode,
