@@ -53,7 +53,7 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ steps.set_tag.outputs.tag }}
 
       - name: GH Release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.0
         with:
           name: ${{ steps.set_tag.outputs.tag }}
           tag_name: ${{ steps.set_tag.outputs.tag }}
