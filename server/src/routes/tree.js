@@ -1,10 +1,11 @@
 import { getDirectoryTree } from '../lib/hash-cache.js';
+import { API_CACHE_CONTROL } from '../lib/http.js';
 
 export const registerTreeRoute = (app) => {
   app.get('/api/tree', (req, res) => {
     try {
       const nodes = getDirectoryTree();
-      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Cache-Control', API_CACHE_CONTROL);
       res.json({
         nodes,
       });

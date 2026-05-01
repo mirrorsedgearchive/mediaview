@@ -86,7 +86,8 @@ const verifyThumbnailCoverage = () => {
         const thumbPath = getThumbPath(entry.hash, sizeKey, originalName);
         return !fs.existsSync(thumbPath);
       });
-      if (missing) {
+      const jpgFallbackPath = getThumbPath(entry.hash, 'md', originalName, '.jpg');
+      if (missing || !fs.existsSync(jpgFallbackPath)) {
         candidates.push(entry.path);
       }
     });

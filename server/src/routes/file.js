@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import mime from 'mime-types';
 import { isExcludedPath } from '../lib/exclude.js';
-import { matchesEtag } from '../lib/http.js';
+import { matchesEtag, MEDIA_CACHE_CONTROL } from '../lib/http.js';
 import { getHashEntry, hasHashEntry } from '../lib/hash-cache.js';
 import { resolveSafePath, sanitizeRequestPath } from '../lib/paths.js';
 
@@ -42,10 +42,14 @@ export const handleFileRequest = async (req, res, rawPath) => {
     }
     const hash = cached.hash;
     const etag = `"${hash}"`;
-    const cacheControl = 'public, max-age=21600, stale-while-revalidate=10800';
+    const baseHeaders = {
+      'Content-Type': mimeType,
+      'Accept-Ranges': 'bytes',
+      'Cache-Control': MEDIA_CACHE_CONTROL,
+    };
     res.setHeader('ETag', etag);
     res.setHeader('Last-Modified', stats.mtime.toUTCString());
-    res.setHeader('Cache-Control', cacheControl);
+    res.setHeader('Cache-Control', MEDIA_CACHE_CONTROL);
     if (matchesEtag(req.headers['if-none-match'], etag)) {
       res.status(304).end();
       return;
@@ -55,9 +59,7 @@ export const handleFileRequest = async (req, res, rawPath) => {
     if (stats.size === 0) {
       res.writeHead(200, {
         'Content-Length': 0,
-        'Content-Type': mimeType,
-        'Accept-Ranges': 'bytes',
-        'Cache-Control': cacheControl,
+        ...baseHeaders,
       });
       res.end();
       return;
@@ -85,10 +87,8 @@ export const handleFileRequest = async (req, res, rawPath) => {
       const chunkSize = clampedEnd - clampedStart + 1;
       res.writeHead(206, {
         'Content-Range': `bytes ${clampedStart}-${clampedEnd}/${stats.size}`,
-        'Accept-Ranges': 'bytes',
         'Content-Length': chunkSize,
-        'Content-Type': mimeType,
-        'Cache-Control': cacheControl,
+        ...baseHeaders,
       });
       fs.createReadStream(absolutePath, { start: clampedStart, end: clampedEnd }).pipe(res);
       return;
@@ -96,9 +96,7 @@ export const handleFileRequest = async (req, res, rawPath) => {
 
     res.writeHead(200, {
       'Content-Length': stats.size,
-      'Content-Type': mimeType,
-      'Accept-Ranges': 'bytes',
-      'Cache-Control': cacheControl,
+      ...baseHeaders,
     });
     fs.createReadStream(absolutePath).pipe(res);
   } catch (error) {
