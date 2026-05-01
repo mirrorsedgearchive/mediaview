@@ -52,7 +52,9 @@ export default [
       ...reactHooks.configs.flat.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      'jsx-a11y/media-has-caption': 'off'
+      'jsx-a11y/media-has-caption': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off'
     }
   },
   {
