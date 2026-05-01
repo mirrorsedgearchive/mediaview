@@ -5,10 +5,18 @@ import mime from 'mime-types';
 import { THUMB_SIZES } from '../config.js';
 import { isThumbablePath } from '../lib/classify.js';
 import { isExcludedPath } from '../lib/exclude.js';
-import { matchesEtag } from '../lib/http.js';
+import { matchesEtag, MEDIA_CACHE_CONTROL } from '../lib/http.js';
 import { decodePathSegments, resolveSafePath, sanitizeRequestPath } from '../lib/paths.js';
-import { getHashEntry, hasHashEntry } from '../lib/hash-cache.js';
+import { getHashEntry, getThumbErrCount, hasHashEntry, THUMB_ERR_LIMIT } from '../lib/hash-cache.js';
 import { getThumbPath } from '../lib/thumbnails.js';
+
+const buildThumbnailMissEtag = (hash, size, format = '') =>
+  `"thumb-miss-${hash}-${size}-${format || 'default'}"`;
+
+const resolveThumbPath = (hash, size, originalName, format = '') =>
+  format === 'jpg'
+    ? getThumbPath(hash, size, originalName, '.jpg')
+    : getThumbPath(hash, size, originalName);
 
 const parseThumbnailRequest = (req) => {
   if (typeof req.params.size === 'string' && (typeof req.params.path === 'string' || Array.isArray(req.params.path))) {
@@ -79,16 +87,27 @@ export const registerThumbnailRoute = (app) => {
       }
       const hash = cached.hash;
       const format = parsed.format || '';
-      const thumbPath = format === 'jpg'
-        ? getThumbPath(hash, size, path.basename(requestPath), '.jpg')
-        : getThumbPath(hash, size, path.basename(requestPath));
+      const thumbPath = resolveThumbPath(hash, size, path.basename(requestPath), format);
       if (!fs.existsSync(thumbPath)) {
+        const thumbErrCount = getThumbErrCount(requestPath);
+        if (thumbErrCount > THUMB_ERR_LIMIT) {
+          const missEtag = buildThumbnailMissEtag(hash, size, format);
+          res.setHeader('ETag', missEtag);
+          res.setHeader('Last-Modified', stats.mtime.toUTCString());
+          res.setHeader('Cache-Control', MEDIA_CACHE_CONTROL);
+          if (matchesEtag(req.headers['if-none-match'], missEtag)) {
+            res.status(304).end();
+            return;
+          }
+        } else {
+          res.setHeader('Cache-Control', 'no-store');
+        }
         res.status(404).json({ error: 'Thumbnail not found' });
         return;
       }
       const mimeType = mime.lookup(thumbPath) || 'application/octet-stream';
       const etag = `"${hash}"`;
-      const cacheControl = 'public, max-age=21600, stale-while-revalidate=10800';
+      const cacheControl = MEDIA_CACHE_CONTROL;
       res.setHeader('ETag', etag);
       res.setHeader('Cache-Control', cacheControl);
       if (matchesEtag(req.headers['if-none-match'], etag)) {

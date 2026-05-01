@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { getDirectoryEntries, hasDirectoryEntry } from '../lib/hash-cache.js';
 import { isExcludedPath, isHiddenPath } from '../lib/exclude.js';
+import { API_CACHE_CONTROL } from '../lib/http.js';
 import { decodePathSegments, sanitizeRequestPath } from '../lib/paths.js';
 import { buildStats } from '../lib/stats.js';
 
@@ -46,7 +47,7 @@ export const registerListRoute = (app) => {
         children[entry.path] = getDirectoryEntries(entry.path) || [];
       });
 
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Cache-Control', API_CACHE_CONTROL);
     res.json({
       current: {
         name: requestPath ? path.posix.basename(requestPath) : 'Archive',

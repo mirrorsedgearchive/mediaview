@@ -14,11 +14,29 @@ import { registerSitemapRoute } from './routes/sitemap.js';
 import { isExcludedPath } from './lib/exclude.js';
 import { getCacheEpoch, hasHashEntry } from './lib/hash-cache.js';
 import { CLIENT_DIST } from './config.js';
+import {
+  HTML_CACHE_CONTROL,
+  IMMUTABLE_ASSET_CACHE_CONTROL,
+  PUBLIC_ASSET_CACHE_CONTROL,
+} from './lib/http.js';
 import { decodePathSegments, sanitizeRequestPath } from './lib/paths.js';
 import { createIndexHtmlRenderer } from './lib/html-meta.js';
 import { buildNoscriptDirectoryList } from './lib/noscript-list.js';
 
 const BASE_TITLE = "The Mirror's Edge Archive";
+const CONTENT_SECURITY_POLICY = {
+  useDefaults: true,
+  directives: {
+    'connect-src': ["'self'"],
+    'font-src': ["'self'"],
+    'frame-src': ["'self'"],
+    'img-src': ["'self'", 'data:'],
+    'manifest-src': ["'self'"],
+    'media-src': ["'self'"],
+    'style-src': ["'self'"],
+    'style-src-attr': ["'unsafe-inline'"],
+  },
+};
 
 export const createApp = () => {
   const app = express();
@@ -41,7 +59,7 @@ export const createApp = () => {
     app.use(
       helmet({
         crossOriginResourcePolicy: { policy: 'cross-origin' },
-        contentSecurityPolicy: false,
+        contentSecurityPolicy: CONTENT_SECURITY_POLICY,
       })
     );
   }
@@ -96,11 +114,15 @@ export const createApp = () => {
       getCacheEpoch,
     });
     const assetCacheControl = (res, filePath) => {
-      if (filePath.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'no-cache');
-        return;
-      }
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      const relativePath = path.relative(CLIENT_DIST, filePath).split(path.sep).join('/');
+      res.setHeader(
+        'Cache-Control',
+        filePath.endsWith('.html')
+          ? HTML_CACHE_CONTROL
+          : relativePath.startsWith('assets/')
+            ? IMMUTABLE_ASSET_CACHE_CONTROL
+            : PUBLIC_ASSET_CACHE_CONTROL
+      );
     };
 
     app.use(express.static(CLIENT_DIST, { index: false, setHeaders: assetCacheControl }));
@@ -108,7 +130,7 @@ export const createApp = () => {
     app.get('/', (req, res) => {
       const html = renderIndexHtml(req);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', HTML_CACHE_CONTROL);
       res.send(html);
     });
 
@@ -119,7 +141,7 @@ export const createApp = () => {
       }
       const html = renderIndexHtml(req);
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', HTML_CACHE_CONTROL);
       res.send(html);
     });
   }
