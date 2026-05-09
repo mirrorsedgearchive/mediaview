@@ -109,9 +109,9 @@ const useAppRouting = ({
 
   const handleCloseSearch = useCallback(() => {
     const returnPath = lastBrowsePath ?? '';
-    clearSearchState({ focus: Boolean(searchQuery) });
+    clearSearchState();
     void navigateTo(returnPath);
-  }, [clearSearchState, lastBrowsePath, navigateTo, searchQuery]);
+  }, [clearSearchState, lastBrowsePath, navigateTo]);
 
   useUrlSync({
     clearSearch: clearSearchState,
