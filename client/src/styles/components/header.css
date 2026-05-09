@@ -292,6 +292,10 @@
     display: none;
   }
 
+  .topbar-controls.search-active .topbar-settings {
+    display: none;
+  }
+
   .topbar-controls.search-active .search {
     flex: 1 1 100%;
   }
