@@ -1,4 +1,4 @@
-FROM dhi.io/node:25-alpine3.23-dev AS client-build
+FROM dhi.io/node:26-alpine3.23-dev AS client-build
 WORKDIR /app/client
 ARG VITE_APP_COMMIT_SHORT=""
 ENV VITE_APP_COMMIT_SHORT=${VITE_APP_COMMIT_SHORT}
@@ -7,14 +7,14 @@ RUN npm ci
 COPY client/ ./
 RUN npm run build
 
-FROM dhi.io/node:25-alpine3.23-dev AS server-build
+FROM dhi.io/node:26-alpine3.23-dev AS server-build
 WORKDIR /app/server
 COPY server/package.json server/package-lock.json ./
 RUN npm ci --omit=dev
 COPY server/index.js ./index.js
 COPY server/src ./src
 
-FROM dhi.io/node:25-alpine3.23-dev AS ffmpeg-bundle
+FROM dhi.io/node:26-alpine3.23-dev AS ffmpeg-bundle
 RUN apk add --no-cache ffmpeg tini libc-utils
 RUN set -eux; \
     mkdir -p /ffmpeg-root/usr/bin /ffmpeg-root/sbin; \
@@ -28,7 +28,7 @@ RUN set -eux; \
           cp "$lib" "/ffmpeg-root$lib"; \
         done
 
-FROM dhi.io/node:25-alpine3.23 AS server
+FROM dhi.io/node:26-alpine3.23 AS server
 WORKDIR /app/server
 COPY --from=ffmpeg-bundle /ffmpeg-root/ /
 COPY --from=server-build /app/server/package.json /app/server/package.json
