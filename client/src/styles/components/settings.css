@@ -119,7 +119,7 @@
   color: var(--muted);
 }
 
-.settings-control input[type="checkbox"] {
+.settings-control input[type='checkbox'] {
   width: 18px;
   height: 18px;
   accent-color: var(--accent);

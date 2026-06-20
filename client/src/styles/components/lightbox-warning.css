@@ -37,7 +37,7 @@
   user-select: none;
 }
 
-.lightbox-warning-checkbox input[type="checkbox"] {
+.lightbox-warning-checkbox input[type='checkbox'] {
   width: 14px;
   height: 14px;
   accent-color: #f1f1f1;
@@ -52,7 +52,10 @@
   font-size: 12px;
   background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
 }
 
 .lightbox-warning-button.is-secondary {

@@ -10,7 +10,7 @@ const IMAGE_EXTS = new Set([
   '.tiff',
   '.tif',
   '.heic',
-  '.ico'
+  '.ico',
 ]);
 const VIDEO_EXTS = new Set([
   '.mp4',
@@ -36,7 +36,7 @@ const VIDEO_EXTS = new Set([
   '.asf',
   '.mxf',
   '.m1v',
-  '.m2v'
+  '.m2v',
 ]);
 const AUDIO_EXTS = new Set([
   '.mp3',
@@ -47,7 +47,7 @@ const AUDIO_EXTS = new Set([
   '.ogg',
   '.wma',
   '.alac',
-  '.aiff'
+  '.aiff',
 ]);
 const ARCHIVE_EXTS = new Set([
   '.zip',
@@ -73,7 +73,7 @@ const ARCHIVE_EXTS = new Set([
   '.war',
   '.ear',
   '.apk',
-  '.ipa'
+  '.ipa',
 ]);
 const DOC_EXTS = new Set([
   '.pdf',
@@ -85,7 +85,7 @@ const DOC_EXTS = new Set([
   '.pptx',
   '.odt',
   '.ods',
-  '.odp'
+  '.odp',
 ]);
 const DOC_PREVIEW_EXTS = new Set(['.pdf']);
 const TEXT_EXTS = new Set(['.txt', '.md', '.json', '.csv', '.log']);
@@ -94,8 +94,9 @@ export const VIEWABLE_TYPES = new Set(['image', 'video', 'audio', 'text']);
 
 export const getEntryExtension = (entry) => {
   if (!entry) return '';
-  const rawExt = entry.ext
-    || (entry.name && entry.name.includes('.') ? entry.name.slice(entry.name.lastIndexOf('.')) : '');
+  const rawExt =
+    entry.ext ||
+    (entry.name && entry.name.includes('.') ? entry.name.slice(entry.name.lastIndexOf('.')) : '');
   return rawExt ? rawExt.toLowerCase() : '';
 };
 
@@ -149,14 +150,14 @@ export const isArchiveEntry = (entry) => {
 
 export const isViewableEntry = (entry) =>
   Boolean(
-    entry
-    && !entry.isDir
-    && (VIEWABLE_TYPES.has(entry.type)
-      || isImageEntry(entry)
-      || isVideoEntry(entry)
-      || isAudioEntry(entry)
-      || isDocumentPreviewEntry(entry)
-      || isTextEntry(entry))
+    entry &&
+    !entry.isDir &&
+    (VIEWABLE_TYPES.has(entry.type) ||
+      isImageEntry(entry) ||
+      isVideoEntry(entry) ||
+      isAudioEntry(entry) ||
+      isDocumentPreviewEntry(entry) ||
+      isTextEntry(entry))
   );
 
 export const fileTypeLabel = (entry) => {

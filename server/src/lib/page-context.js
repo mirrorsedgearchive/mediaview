@@ -1,14 +1,12 @@
 import { decodePathSegments, sanitizeRequestPath } from './paths.js';
 
-const normalizeBaseUrl = (value) => (value && value.endsWith('/'))
-  ? value.slice(0, -1)
-  : value;
+const normalizeBaseUrl = (value) => (value && value.endsWith('/') ? value.slice(0, -1) : value);
 
 const getOrigin = (req) => {
   const protoHeader = req.headers['x-forwarded-proto'];
   const hostHeader = req.headers['x-forwarded-host'];
-  const proto = Array.isArray(protoHeader) ? protoHeader[0] : (protoHeader || req.protocol);
-  const host = Array.isArray(hostHeader) ? hostHeader[0] : (hostHeader || req.get('host'));
+  const proto = Array.isArray(protoHeader) ? protoHeader[0] : protoHeader || req.protocol;
+  const host = Array.isArray(hostHeader) ? hostHeader[0] : hostHeader || req.get('host');
   return `${proto}://${host}`;
 };
 

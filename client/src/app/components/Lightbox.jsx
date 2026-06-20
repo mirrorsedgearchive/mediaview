@@ -8,7 +8,7 @@ import {
   IconInfoCircle,
   IconShare,
   iconForEntry,
-  LightboxLargeFileWarning
+  LightboxLargeFileWarning,
 } from './index.js';
 
 const Lightbox = ({
@@ -24,7 +24,7 @@ const Lightbox = ({
   showPath = false,
   onNavigatePath,
   warnOnLargeFiles = true,
-  onDisableLargeFileWarnings
+  onDisableLargeFileWarnings,
 }) => {
   const {
     activePosition,
@@ -83,7 +83,7 @@ const Lightbox = ({
     onPrev,
     open,
     selectedEntry,
-    warnOnLargeFiles
+    warnOnLargeFiles,
   });
 
   if (!open || !currentEntry || isDirectory) return null;
@@ -95,7 +95,12 @@ const Lightbox = ({
       role="dialog"
       aria-modal="true"
     >
-      <button type="button" className="lightbox-backdrop" onClick={onClose} aria-label="Close preview" />
+      <button
+        type="button"
+        className="lightbox-backdrop"
+        onClick={onClose}
+        aria-label="Close preview"
+      />
       {showSideNav && (
         <>
           <button
@@ -138,7 +143,9 @@ const Lightbox = ({
             />
           )}
           {showMediaPreview && (
-            <div className={`lightbox-media${mediaLoading ? ' is-loading' : ''}${isSvg ? ' is-svg' : ''}`}>
+            <div
+              className={`lightbox-media${mediaLoading ? ' is-loading' : ''}${isSvg ? ' is-svg' : ''}`}
+            >
               {mediaLoading && <div className="media-loader" aria-hidden="true" />}
               {shouldRenderImage && (
                 <img
@@ -182,11 +189,7 @@ const Lightbox = ({
             />
           )}
           {showDocumentPreview && (
-            <iframe
-              className="lightbox-iframe"
-              src={previewSource}
-              title={selectedName}
-            />
+            <iframe className="lightbox-iframe" src={previewSource} title={selectedName} />
           )}
           {showTextPreview && (
             <div className={`lightbox-text${isMarkdown ? ' lightbox-markdown' : ''}`}>
@@ -207,7 +210,9 @@ const Lightbox = ({
               )}
               {textPreview.status === 'ready' && (
                 <>
-                  {textPreview.truncated && <div className="lightbox-note">Showing first 64 KB.</div>}
+                  {textPreview.truncated && (
+                    <div className="lightbox-note">Showing first 64 KB.</div>
+                  )}
                   {isMarkdown ? (
                     <div
                       className="lightbox-markdown-body"
@@ -261,11 +266,7 @@ const Lightbox = ({
                   <span className="lightbox-location-icon" aria-hidden="true">
                     <IconFolder />
                   </span>
-                  <button
-                    type="button"
-                    className="lightbox-path"
-                    onClick={handleNavigateFromPath}
-                  >
+                  <button type="button" className="lightbox-path" onClick={handleNavigateFromPath}>
                     {pathLabel}
                   </button>
                 </div>
@@ -299,11 +300,7 @@ const Lightbox = ({
               <IconChevronRight />
             </button>
           </div>
-          <a
-            className="lightbox-download"
-            href={previewSource}
-            download={selectedName}
-          >
+          <a className="lightbox-download" href={previewSource} download={selectedName}>
             <IconDownload />
             Download
           </a>

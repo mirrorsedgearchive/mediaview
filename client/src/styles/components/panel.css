@@ -431,7 +431,6 @@
   color: var(--panel);
 }
 
-
 @media (max-width: 900px) {
   .not-found {
     grid-template-columns: 1fr;

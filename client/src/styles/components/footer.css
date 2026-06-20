@@ -14,7 +14,9 @@
   transform: translateY(100%);
   opacity: 0;
   pointer-events: none;
-  transition: transform 220ms ease-out, opacity 160ms ease-out;
+  transition:
+    transform 220ms ease-out,
+    opacity 160ms ease-out;
   z-index: 8;
 }
 

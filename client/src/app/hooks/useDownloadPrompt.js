@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 const useDownloadPrompt = ({ discoverSelection, downloadSelection }) => {
   const [downloadPrompt, setDownloadPrompt] = useState({
     open: false,
-    summary: null
+    summary: null,
   });
 
   const handleRequestDownload = useCallback(async () => {
@@ -28,7 +28,7 @@ const useDownloadPrompt = ({ discoverSelection, downloadSelection }) => {
     setDownloadPrompt,
     handleRequestDownload,
     handleConfirmDownload,
-    handleCancelDownloadPrompt
+    handleCancelDownloadPrompt,
   };
 };
 

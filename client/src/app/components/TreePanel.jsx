@@ -3,7 +3,7 @@ import {
   IconChevronRight,
   IconCollapse,
   IconDatabase,
-  IconFolder
+  IconFolder,
 } from './index.js';
 const TreeNode = ({ node, tree, currentPath, onToggle, onNavigate, isRoot = false }) => {
   const rootLabel = 'Archive';
@@ -11,7 +11,7 @@ const TreeNode = ({ node, tree, currentPath, onToggle, onNavigate, isRoot = fals
   const hasChildren = isLoaded && node.children.length > 0;
   const canExpand = !isLoaded || hasChildren;
   const isActive = node.path === currentPath;
-  const displayName = isRoot ? (rootLabel || node.name || 'Archive') : (node.name || 'Archive');
+  const displayName = isRoot ? rootLabel || node.name || 'Archive' : node.name || 'Archive';
   return (
     <div className={`tree-node ${isRoot ? 'root-node' : ''} ${isActive ? 'active' : ''}`}>
       <div className="tree-node-row">
@@ -30,9 +30,7 @@ const TreeNode = ({ node, tree, currentPath, onToggle, onNavigate, isRoot = fals
           <span className="tree-toggle placeholder" aria-hidden="true" />
         )}
         <button className="tree-label" type="button" onClick={() => onNavigate(node.path)}>
-          <span className="tree-icon">
-            {isRoot ? <IconDatabase /> : <IconFolder />}
-          </span>
+          <span className="tree-icon">{isRoot ? <IconDatabase /> : <IconFolder />}</span>
           <span className="tree-name">{displayName}</span>
         </button>
       </div>
@@ -69,7 +67,7 @@ const TreePanel = ({
   onExpandCurrent,
   hideHeader = false,
   status,
-  onRetry
+  onRetry,
 }) => {
   const rootNode = tree[rootPath];
   const hasError = Boolean(status?.error);
@@ -79,9 +77,7 @@ const TreePanel = ({
   return (
     <div className="panel tree-panel">
       <div className="panel-header">
-        <div>
-          {!hideHeader && <span className="panel-title">Folders</span>}
-        </div>
+        <div>{!hideHeader && <span className="panel-title">Folders</span>}</div>
         {!hideHeader && (
           <div className="tree-actions">
             <button

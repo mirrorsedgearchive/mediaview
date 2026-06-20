@@ -26,8 +26,7 @@ const getThumbHeight = (width) => Math.round((width * THUMB_ASPECT.height) / THU
 
 const toPosix = (value) => value.split(path.sep).join('/');
 
-const isExcludedPath = (relativePath) =>
-  isExcludedPathWithPatterns(relativePath, excludedPatterns);
+const isExcludedPath = (relativePath) => isExcludedPathWithPatterns(relativePath, excludedPatterns);
 
 const ensureThumbDir = async () => {
   await fsPromises.mkdir(thumbDir, { recursive: true });
@@ -73,7 +72,10 @@ const deleteThumbFiles = async (relativePath, hash) => {
           })
           .catch((error) => {
             if (error?.code === 'ENOENT') return;
-            console.error(`Thumbnail worker failed to delete jpg thumbnail for ${relativePath}`, error);
+            console.error(
+              `Thumbnail worker failed to delete jpg thumbnail for ${relativePath}`,
+              error
+            );
           })
       );
       return Promise.all(attempts);

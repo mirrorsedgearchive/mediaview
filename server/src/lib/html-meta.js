@@ -6,19 +6,15 @@ const NOSCRIPT_PLACEHOLDER = '<!-- NOSCRIPT_DIRECTORY_LIST -->';
 const RENDER_CACHE = new Map();
 let RENDER_CACHE_EPOCH = null;
 
-const escapeHtml = (value) => String(value ?? '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#39;');
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
-const buildMetaBlock = ({
-  title,
-  description,
-  image,
-  url
-}) => {
+const buildMetaBlock = ({ title, description, image, url }) => {
   const safeTitle = escapeHtml(title);
   const safeDescription = escapeHtml(description);
   const safeImage = escapeHtml(image);
@@ -44,7 +40,7 @@ const findTitleBounds = (templateLower) => {
   }
   return {
     openIndex,
-    closeIndex: closeIndex + TITLE_CLOSE.length
+    closeIndex: closeIndex + TITLE_CLOSE.length,
   };
 };
 
@@ -80,20 +76,14 @@ export const createIndexHtmlRenderer = (
 
     let html = template;
     if (titleBounds) {
-      html = (
+      html =
         html.slice(0, titleBounds.openIndex) +
         titleTag +
         html.slice(titleBounds.closeIndex, headEndIndex) +
         metaBlock +
-        html.slice(headEndIndex)
-      );
+        html.slice(headEndIndex);
     } else {
-      html = (
-        html.slice(0, headEndIndex) +
-        titleTag +
-        metaBlock +
-        html.slice(headEndIndex)
-      );
+      html = html.slice(0, headEndIndex) + titleTag + metaBlock + html.slice(headEndIndex);
     }
 
     if (!noscriptContent) {
@@ -113,11 +103,10 @@ export const createIndexHtmlRenderer = (
     }
 
     if (bodyEndIndex !== -1) {
-      const rendered = (
+      const rendered =
         html.slice(0, bodyEndIndex) +
         `<noscript>\n${noscriptContent}\n</noscript>\n` +
-        html.slice(bodyEndIndex)
-      );
+        html.slice(bodyEndIndex);
       if (epoch !== null) {
         RENDER_CACHE.set(cacheKey, rendered);
       }

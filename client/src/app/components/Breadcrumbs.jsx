@@ -48,27 +48,26 @@ const Breadcrumbs = ({ path, onNavigate, searchQuery, isPathStale = false }) => 
         {isSearchActive && (
           <span className="crumb-segment">
             <span className="crumb-separator">/</span>
-            <span className="crumb current">
-              Search for &quot;{searchQuery}&quot;
-            </span>
+            <span className="crumb current">Search for &quot;{searchQuery}&quot;</span>
           </span>
         )}
-        {!isSearchActive && segments.map((segment, index) => {
-          const crumbPath = segments.slice(0, index + 1).join('/');
-          const isCurrent = !isPathStale && index === segments.length - 1;
-          return (
-            <span className="crumb-segment" key={crumbPath}>
-              <span className="crumb-separator">/</span>
-              <button
-                className={`crumb ${isCurrent ? 'current' : ''}`}
-                type="button"
-                onClick={() => onNavigate(crumbPath)}
-              >
-                {segment}
-              </button>
-            </span>
-          );
-        })}
+        {!isSearchActive &&
+          segments.map((segment, index) => {
+            const crumbPath = segments.slice(0, index + 1).join('/');
+            const isCurrent = !isPathStale && index === segments.length - 1;
+            return (
+              <span className="crumb-segment" key={crumbPath}>
+                <span className="crumb-separator">/</span>
+                <button
+                  className={`crumb ${isCurrent ? 'current' : ''}`}
+                  type="button"
+                  onClick={() => onNavigate(crumbPath)}
+                >
+                  {segment}
+                </button>
+              </span>
+            );
+          })}
       </div>
     </div>
   );

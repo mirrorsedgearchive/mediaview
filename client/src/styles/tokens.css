@@ -25,7 +25,8 @@
   --shadow: none;
   --radius-lg: 6px;
   --radius-md: 6px;
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-serif: 'Times New Roman', Times, serif;
   --topbar-height: 56px;
   --breadcrumbs-height: 40px;

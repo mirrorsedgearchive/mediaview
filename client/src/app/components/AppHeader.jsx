@@ -14,7 +14,7 @@ const AppHeader = ({
   onToggleFooter,
   onOpenSettings,
   showFooterToggle,
-  footerOpen
+  footerOpen,
 }) => {
   const { viewMode, setViewMode, zoomLevel, setZoomLevel } = useViewContext();
   const inputRef = useRef(null);
@@ -65,7 +65,9 @@ const AppHeader = ({
         </span>
         <div>
           <div className="brand-title">
-            <p>The Mirror&apos;s Edge <b>Archive</b></p>
+            <p>
+              The Mirror&apos;s Edge <b>Archive</b>
+            </p>
             {showStaging && <span className="brand-subtitle">STAGING</span>}
           </div>
         </div>

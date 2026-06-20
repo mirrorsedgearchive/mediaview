@@ -11,30 +11,34 @@ const useAppPanelsProps = ({
   handleNavigate,
   treeStatus,
   retryTree,
-  handleFooterOverlayClick
-}) => useMemo(() => ({
-  layoutRef,
-  tree: treeData,
-  treeCurrentPath: searchQuery ? null : currentPath,
-  onToggleTree: handleToggle,
-  onCollapseAll: collapseAll,
-  onExpandCurrent: expandToCurrentPath,
-  onNavigate: handleNavigate,
-  treeStatus,
-  onRetryTree: retryTree,
-  onFooterOverlayClick: handleFooterOverlayClick
-}), [
-  collapseAll,
-  currentPath,
-  expandToCurrentPath,
   handleFooterOverlayClick,
-  handleNavigate,
-  handleToggle,
-  layoutRef,
-  retryTree,
-  searchQuery,
-  treeData,
-  treeStatus
-]);
+}) =>
+  useMemo(
+    () => ({
+      layoutRef,
+      tree: treeData,
+      treeCurrentPath: searchQuery ? null : currentPath,
+      onToggleTree: handleToggle,
+      onCollapseAll: collapseAll,
+      onExpandCurrent: expandToCurrentPath,
+      onNavigate: handleNavigate,
+      treeStatus,
+      onRetryTree: retryTree,
+      onFooterOverlayClick: handleFooterOverlayClick,
+    }),
+    [
+      collapseAll,
+      currentPath,
+      expandToCurrentPath,
+      handleFooterOverlayClick,
+      handleNavigate,
+      handleToggle,
+      layoutRef,
+      retryTree,
+      searchQuery,
+      treeData,
+      treeStatus,
+    ]
+  );
 
 export { useAppPanelsProps };

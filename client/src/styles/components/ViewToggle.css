@@ -69,7 +69,10 @@
   transform-origin: left center;
   width: auto;
   overflow: hidden;
-  transition: width 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    width 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
   justify-content: center;
 }
 
@@ -83,7 +86,9 @@
   min-height: 32px;
   padding: 0 8px;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .size-toggle button.active {

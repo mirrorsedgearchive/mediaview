@@ -42,107 +42,123 @@ const useAppProviderValues = ({
   viewMode,
   setViewMode,
   zoomLevel,
-  setZoomLevel
+  setZoomLevel,
 }) => {
-  const directoryDataValue = useMemo(() => ({
-    directory,
-    currentPath,
-    currentPathName,
-    status,
-    lastGoodPath,
-    entries: activeEntries,
-    useWindowScroll: isTreeHidden
-  }), [
-    activeEntries,
-    currentPath,
-    currentPathName,
-    directory,
-    isTreeHidden,
-    lastGoodPath,
-    status
-  ]);
+  const directoryDataValue = useMemo(
+    () => ({
+      directory,
+      currentPath,
+      currentPathName,
+      status,
+      lastGoodPath,
+      entries: activeEntries,
+      useWindowScroll: isTreeHidden,
+    }),
+    [activeEntries, currentPath, currentPathName, directory, isTreeHidden, lastGoodPath, status]
+  );
 
-  const directoryActionsValue = useMemo(() => ({
-    onSelect: handleOpen,
-    onNavigate: handleNavigate,
-    onRetryList: handleRetryList
-  }), [handleNavigate, handleOpen, handleRetryList]);
+  const directoryActionsValue = useMemo(
+    () => ({
+      onSelect: handleOpen,
+      onNavigate: handleNavigate,
+      onRetryList: handleRetryList,
+    }),
+    [handleNavigate, handleOpen, handleRetryList]
+  );
 
-  const selectionStateValue = useMemo(() => ({
-    selectedPath: selectionMode ? '' : (selected?.path || pendingSelectionPath),
-    selectionMode,
-    selectedPaths,
-    selectedCount
-  }), [
-    pendingSelectionPath,
-    selected,
-    selectedCount,
-    selectedPaths,
-    selectionMode
-  ]);
+  const selectionStateValue = useMemo(
+    () => ({
+      selectedPath: selectionMode ? '' : selected?.path || pendingSelectionPath,
+      selectionMode,
+      selectedPaths,
+      selectedCount,
+    }),
+    [pendingSelectionPath, selected, selectedCount, selectedPaths, selectionMode]
+  );
 
-  const selectionActionsValue = useMemo(() => ({
-    onToggleSelection: toggleSelection,
-    onSetSelectionMode: setSelectionMode,
-    onSelectAllFiles: handleSelectAllFiles
-  }), [handleSelectAllFiles, setSelectionMode, toggleSelection]);
+  const selectionActionsValue = useMemo(
+    () => ({
+      onToggleSelection: toggleSelection,
+      onSetSelectionMode: setSelectionMode,
+      onSelectAllFiles: handleSelectAllFiles,
+    }),
+    [handleSelectAllFiles, setSelectionMode, toggleSelection]
+  );
 
-  const downloadStateValue = useMemo(() => ({
-    downloadState,
-    downloadPrompt
-  }), [downloadPrompt, downloadState]);
+  const downloadStateValue = useMemo(
+    () => ({
+      downloadState,
+      downloadPrompt,
+    }),
+    [downloadPrompt, downloadState]
+  );
 
-  const downloadActionsValue = useMemo(() => ({
-    onRequestDownload: handleRequestDownload,
-    onConfirmDownload: handleConfirmDownload,
-    onCancelDownloadPrompt: handleCancelDownloadPrompt,
-    onCancelDownload: cancelDownload,
-    onResetDownloadState: resetDownloadState
-  }), [
-    cancelDownload,
-    handleCancelDownloadPrompt,
-    handleConfirmDownload,
-    handleRequestDownload,
-    resetDownloadState
-  ]);
+  const downloadActionsValue = useMemo(
+    () => ({
+      onRequestDownload: handleRequestDownload,
+      onConfirmDownload: handleConfirmDownload,
+      onCancelDownloadPrompt: handleCancelDownloadPrompt,
+      onCancelDownload: cancelDownload,
+      onResetDownloadState: resetDownloadState,
+    }),
+    [
+      cancelDownload,
+      handleCancelDownloadPrompt,
+      handleConfirmDownload,
+      handleRequestDownload,
+      resetDownloadState,
+    ]
+  );
 
-  const contextMenuValue = useMemo(() => ({
-    contextMenu,
-    onOpenContextMenu: openContextMenu,
-    onCloseContextMenu: closeContextMenu,
-    onContextSelect: handleContextSelect,
-    onContextDownload: handleContextDownload,
-    onContextShare: handleContextShare,
-    onContextCancelSelection: handleContextCancelSelection,
-    onContextGoToEntry: handleContextGoToEntry
-  }), [
-    closeContextMenu,
-    contextMenu,
-    handleContextCancelSelection,
-    handleContextDownload,
-    handleContextShare,
-    handleContextGoToEntry,
-    handleContextSelect,
-    openContextMenu
-  ]);
+  const contextMenuValue = useMemo(
+    () => ({
+      contextMenu,
+      onOpenContextMenu: openContextMenu,
+      onCloseContextMenu: closeContextMenu,
+      onContextSelect: handleContextSelect,
+      onContextDownload: handleContextDownload,
+      onContextShare: handleContextShare,
+      onContextCancelSelection: handleContextCancelSelection,
+      onContextGoToEntry: handleContextGoToEntry,
+    }),
+    [
+      closeContextMenu,
+      contextMenu,
+      handleContextCancelSelection,
+      handleContextDownload,
+      handleContextShare,
+      handleContextGoToEntry,
+      handleContextSelect,
+      openContextMenu,
+    ]
+  );
 
-  const searchStateValue = useMemo(() => ({
-    searchQuery,
-    searchResults,
-    searchStatus
-  }), [searchQuery, searchResults, searchStatus]);
+  const searchStateValue = useMemo(
+    () => ({
+      searchQuery,
+      searchResults,
+      searchStatus,
+    }),
+    [searchQuery, searchResults, searchStatus]
+  );
 
-  const searchActionsValue = useMemo(() => ({
-    onRetrySearch: retrySearch,
-    onClearSearch: handleCloseSearch
-  }), [handleCloseSearch, retrySearch]);
+  const searchActionsValue = useMemo(
+    () => ({
+      onRetrySearch: retrySearch,
+      onClearSearch: handleCloseSearch,
+    }),
+    [handleCloseSearch, retrySearch]
+  );
 
-  const viewValue = useMemo(() => ({
-    viewMode,
-    setViewMode,
-    zoomLevel,
-    setZoomLevel
-  }), [setViewMode, setZoomLevel, viewMode, zoomLevel]);
+  const viewValue = useMemo(
+    () => ({
+      viewMode,
+      setViewMode,
+      zoomLevel,
+      setZoomLevel,
+    }),
+    [setViewMode, setZoomLevel, viewMode, zoomLevel]
+  );
 
   return {
     viewValue,
@@ -155,8 +171,8 @@ const useAppProviderValues = ({
       downloadActionsValue,
       contextMenuValue,
       searchStateValue,
-      searchActionsValue
-    }
+      searchActionsValue,
+    },
   };
 };
 

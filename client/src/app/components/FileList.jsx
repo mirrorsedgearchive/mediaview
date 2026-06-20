@@ -8,55 +8,49 @@ const LIST_THUMB_SIZES = '32px';
 const OVERSCAN_BY_ZOOM = {
   sm: 240,
   md: 420,
-  lg: 640
+  lg: 640,
 };
 const INITIAL_ITEMS_BY_ZOOM = {
   sm: 18,
   md: 24,
-  lg: 30
+  lg: 30,
 };
 
 const handleThumbLoad = (event) => {
   event.currentTarget.classList.add('loaded');
 };
 
-const buildThumbSrcSet = (pathValue) => ([
-  `${buildThumbUrl(pathValue, 'sm')} 200w`,
-  `${buildThumbUrl(pathValue, 'md')} 400w`,
-  `${buildThumbUrl(pathValue, 'lg')} 600w`
-].join(', '));
+const buildThumbSrcSet = (pathValue) =>
+  [
+    `${buildThumbUrl(pathValue, 'sm')} 200w`,
+    `${buildThumbUrl(pathValue, 'md')} 400w`,
+    `${buildThumbUrl(pathValue, 'lg')} 600w`,
+  ].join(', ');
 
-const ThumbStack = memo(({
-  entry,
-  sizes,
-  wrapperClassName,
-  imgClassName,
-  iconClassName,
-  iconTag: IconTag
-}) => {
-  const [hasError, setHasError] = useState(false);
+const ThumbStack = memo(
+  ({ entry, sizes, wrapperClassName, imgClassName, iconClassName, iconTag: IconTag }) => {
+    const [hasError, setHasError] = useState(false);
 
-  return (
-    <div className={wrapperClassName}>
-      <img
-        className={imgClassName}
-        src={buildThumbUrl(entry.path, 'jpg')}
-        srcSet={buildThumbSrcSet(entry.path)}
-        alt=""
-        sizes={sizes}
-        loading='lazy'
-        onLoad={handleThumbLoad}
-        onError={(event) => {
-          event.currentTarget.classList.add('thumb-failed');
-          setHasError(true);
-        }}
-      />
-      {hasError && (
-        <IconTag className={iconClassName}>{iconForEntry(entry)}</IconTag>
-      )}
-    </div>
-  );
-});
+    return (
+      <div className={wrapperClassName}>
+        <img
+          className={imgClassName}
+          src={buildThumbUrl(entry.path, 'jpg')}
+          srcSet={buildThumbSrcSet(entry.path)}
+          alt=""
+          sizes={sizes}
+          loading="lazy"
+          onLoad={handleThumbLoad}
+          onError={(event) => {
+            event.currentTarget.classList.add('thumb-failed');
+            setHasError(true);
+          }}
+        />
+        {hasError && <IconTag className={iconClassName}>{iconForEntry(entry)}</IconTag>}
+      </div>
+    );
+  }
+);
 
 const GridList = forwardRef(({ style, children, className, ...props }, ref) => (
   <div
@@ -112,127 +106,114 @@ const SelectionOverlay = memo(({ tag: Tag = 'div' }) => (
 
 SelectionOverlay.displayName = 'SelectionOverlay';
 
-const GridFolderCard = memo(({
-  entry,
-  isSelected,
-  isBatchSelected,
-  isContextHovered,
-  selectionMode,
-  itemHandlers
-}) => (
-  <button
-    type="button"
-    data-path={entry.path}
-    className={`grid-card grid-folder-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}${isContextHovered ? ' context-hovered' : ''}`}
-    onClick={itemHandlers.onClick}
-    onPointerDown={itemHandlers.onPointerDown}
-    onPointerUp={itemHandlers.onPointerUp}
-    onPointerCancel={itemHandlers.onPointerUp}
-    onContextMenu={itemHandlers.onContextMenu}
-    aria-pressed={selectionMode ? isBatchSelected : undefined}
-  >
-    <div className="grid-folder-thumb">
-      <div className="thumb-icon">{iconForEntry(entry)}</div>
-      {isBatchSelected && <SelectionOverlay />}
-    </div>
-    <div className="grid-folder-label">
-      <span>{entry.name}</span>
-      <span className="grid-meta">Folder</span>
-    </div>
-  </button>
-));
+const GridFolderCard = memo(
+  ({ entry, isSelected, isBatchSelected, isContextHovered, selectionMode, itemHandlers }) => (
+    <button
+      type="button"
+      data-path={entry.path}
+      className={`grid-card grid-folder-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}${isContextHovered ? ' context-hovered' : ''}`}
+      onClick={itemHandlers.onClick}
+      onPointerDown={itemHandlers.onPointerDown}
+      onPointerUp={itemHandlers.onPointerUp}
+      onPointerCancel={itemHandlers.onPointerUp}
+      onContextMenu={itemHandlers.onContextMenu}
+      aria-pressed={selectionMode ? isBatchSelected : undefined}
+    >
+      <div className="grid-folder-thumb">
+        <div className="thumb-icon">{iconForEntry(entry)}</div>
+        {isBatchSelected && <SelectionOverlay />}
+      </div>
+      <div className="grid-folder-label">
+        <span>{entry.name}</span>
+        <span className="grid-meta">Folder</span>
+      </div>
+    </button>
+  )
+);
 
 GridFolderCard.displayName = 'GridFolderCard';
 
-const GridFileCard = memo(({
-  entry,
-  isSelected,
-  isBatchSelected,
-  isContextHovered,
-  selectionMode,
-  itemHandlers
-}) => {
-  const hasPreview = entry.type === 'image' || entry.type === 'video';
+const GridFileCard = memo(
+  ({ entry, isSelected, isBatchSelected, isContextHovered, selectionMode, itemHandlers }) => {
+    const hasPreview = entry.type === 'image' || entry.type === 'video';
 
-  return (
-    <button
-      type="button"
-      data-path={entry.path}
-      className={`grid-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}${isContextHovered ? ' context-hovered' : ''}`}
-      onClick={itemHandlers.onClick}
-      onPointerDown={itemHandlers.onPointerDown}
-      onPointerUp={itemHandlers.onPointerUp}
-      onPointerCancel={itemHandlers.onPointerUp}
-      onContextMenu={itemHandlers.onContextMenu}
-      aria-pressed={selectionMode ? isBatchSelected : undefined}
-    >
-      <div className="thumb">
-        {hasPreview ? (
-          <ThumbStack
-            entry={entry}
-            sizes="auto"
-            wrapperClassName="thumb-stack"
-            imgClassName={undefined}
-            iconClassName="thumb-icon"
-            iconTag="div"
-          />
-        ) : (
-          <div className="thumb-icon">{iconForEntry(entry)}</div>
-        )}
-        {isBatchSelected && <SelectionOverlay />}
-      </div>
-      <div className="grid-label">
-        <span>{entry.name}</span>
-        <span className="grid-meta">{formatSize(entry.size)}</span>
-      </div>
-    </button>
-  );
-});
-
-GridFileCard.displayName = 'GridFileCard';
-
-const ListEntryRow = memo(({
-  entry,
-  isSelected,
-  isBatchSelected,
-  isContextHovered,
-  selectionMode,
-  itemHandlers
-}) => {
-  const hasPreview = entry.type === 'image' || entry.type === 'video';
-
-  return (
-    <button
-      type="button"
-      data-path={entry.path}
-      className={`list-row ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''} ${entry.isDir ? 'is-dir' : ''}${isContextHovered ? ' context-hovered' : ''}`}
-      onClick={itemHandlers.onClick}
-      onPointerDown={itemHandlers.onPointerDown}
-      onPointerUp={itemHandlers.onPointerUp}
-      onPointerCancel={itemHandlers.onPointerUp}
-      onContextMenu={itemHandlers.onContextMenu}
-      aria-pressed={selectionMode ? isBatchSelected : undefined}
-    >
-      <span className="list-cell name">
-        <span className="list-icon">
+    return (
+      <button
+        type="button"
+        data-path={entry.path}
+        className={`grid-card ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''}${isContextHovered ? ' context-hovered' : ''}`}
+        onClick={itemHandlers.onClick}
+        onPointerDown={itemHandlers.onPointerDown}
+        onPointerUp={itemHandlers.onPointerUp}
+        onPointerCancel={itemHandlers.onPointerUp}
+        onContextMenu={itemHandlers.onContextMenu}
+        aria-pressed={selectionMode ? isBatchSelected : undefined}
+      >
+        <div className="thumb">
           {hasPreview ? (
             <ThumbStack
               entry={entry}
-              sizes={LIST_THUMB_SIZES}
-              wrapperClassName="list-thumb-stack"
-              imgClassName="list-thumb"
-              iconClassName="list-thumb-icon"
-              iconTag="span"
+              sizes="auto"
+              wrapperClassName="thumb-stack"
+              imgClassName={undefined}
+              iconClassName="thumb-icon"
+              iconTag="div"
             />
-          ) : iconForEntry(entry)}
-          {isBatchSelected && <SelectionOverlay tag="span" />}
+          ) : (
+            <div className="thumb-icon">{iconForEntry(entry)}</div>
+          )}
+          {isBatchSelected && <SelectionOverlay />}
+        </div>
+        <div className="grid-label">
+          <span>{entry.name}</span>
+          <span className="grid-meta">{formatSize(entry.size)}</span>
+        </div>
+      </button>
+    );
+  }
+);
+
+GridFileCard.displayName = 'GridFileCard';
+
+const ListEntryRow = memo(
+  ({ entry, isSelected, isBatchSelected, isContextHovered, selectionMode, itemHandlers }) => {
+    const hasPreview = entry.type === 'image' || entry.type === 'video';
+
+    return (
+      <button
+        type="button"
+        data-path={entry.path}
+        className={`list-row ${isSelected ? 'selected' : ''} ${isBatchSelected ? 'is-selected' : ''} ${entry.isDir ? 'is-dir' : ''}${isContextHovered ? ' context-hovered' : ''}`}
+        onClick={itemHandlers.onClick}
+        onPointerDown={itemHandlers.onPointerDown}
+        onPointerUp={itemHandlers.onPointerUp}
+        onPointerCancel={itemHandlers.onPointerUp}
+        onContextMenu={itemHandlers.onContextMenu}
+        aria-pressed={selectionMode ? isBatchSelected : undefined}
+      >
+        <span className="list-cell name">
+          <span className="list-icon">
+            {hasPreview ? (
+              <ThumbStack
+                entry={entry}
+                sizes={LIST_THUMB_SIZES}
+                wrapperClassName="list-thumb-stack"
+                imgClassName="list-thumb"
+                iconClassName="list-thumb-icon"
+                iconTag="span"
+              />
+            ) : (
+              iconForEntry(entry)
+            )}
+            {isBatchSelected && <SelectionOverlay tag="span" />}
+          </span>
+          {entry.name}
         </span>
-        {entry.name}
-      </span>
-      <span className="list-cell size">{formatSize(entry.size)}</span>
-    </button>
-  );
-});
+        <span className="list-cell size">{formatSize(entry.size)}</span>
+      </button>
+    );
+  }
+);
 
 ListEntryRow.displayName = 'ListEntryRow';
 
@@ -248,7 +229,7 @@ const FileList = ({
   contextMenuEntryPath,
   scrollParent,
   useWindowScroll,
-  zoomLevel
+  zoomLevel,
 }) => {
   const containerRef = useRef(null);
   const listRef = useRef(null);
@@ -257,10 +238,7 @@ const FileList = ({
   const longPressFiredRef = useRef(false);
   const [gridReady, setGridReady] = useState(true);
 
-  const normalizedEntries = useMemo(
-    () => (Array.isArray(entries) ? entries : []),
-    [entries]
-  );
+  const normalizedEntries = useMemo(() => (Array.isArray(entries) ? entries : []), [entries]);
   const entryByPath = useMemo(() => {
     const next = new Map();
     normalizedEntries.forEach((entry, index) => {
@@ -269,10 +247,7 @@ const FileList = ({
     });
     return next;
   }, [normalizedEntries]);
-  const { folders, files } = useMemo(
-    () => splitEntries(normalizedEntries),
-    [normalizedEntries]
-  );
+  const { folders, files } = useMemo(() => splitEntries(normalizedEntries), [normalizedEntries]);
   const fileIndexByPath = useMemo(() => {
     const next = new Map();
     files.forEach((entry, index) => {
@@ -282,18 +257,12 @@ const FileList = ({
     return next;
   }, [files]);
 
-  const selectedListIndex = selectedPath
-    ? (entryByPath.get(selectedPath)?.index ?? -1)
-    : -1;
-  const selectedGridIndex = selectedPath
-    ? (fileIndexByPath.get(selectedPath) ?? -1)
-    : -1;
+  const selectedListIndex = selectedPath ? (entryByPath.get(selectedPath)?.index ?? -1) : -1;
+  const selectedGridIndex = selectedPath ? (fileIndexByPath.get(selectedPath) ?? -1) : -1;
 
   useEffect(() => {
     if (viewMode !== 'grid') return;
-    const target = useWindowScroll
-      ? window
-      : (scrollParent || containerRef.current);
+    const target = useWindowScroll ? window : scrollParent || containerRef.current;
     const element = useWindowScroll ? null : target;
     const hasSize = () => {
       if (useWindowScroll) {
@@ -367,14 +336,17 @@ const FileList = ({
       timers.forEach((timer) => clearTimeout(timer));
     };
   }, [selectedGridIndex, viewMode, files.length, gridReady, scrollParent, useWindowScroll]);
-  const handleActivate = useCallback((entry) => {
-    if (!entry) return;
-    if (selectionMode && onToggleSelection) {
-      onToggleSelection(entry);
-      return;
-    }
-    onSelect(entry);
-  }, [onSelect, onToggleSelection, selectionMode]);
+  const handleActivate = useCallback(
+    (entry) => {
+      if (!entry) return;
+      if (selectionMode && onToggleSelection) {
+        onToggleSelection(entry);
+        return;
+      }
+      onSelect(entry);
+    },
+    [onSelect, onToggleSelection, selectionMode]
+  );
 
   const clearLongPress = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -383,62 +355,80 @@ const FileList = ({
     }
   }, []);
 
-  const openContextMenuAt = useCallback((entry, position) => {
-    if (!onOpenContextMenu) return;
-    if (selectionMode) {
-      onOpenContextMenu(null, position, 'selection');
-      return;
-    }
-    onOpenContextMenu(entry, position, 'entry');
-  }, [onOpenContextMenu, selectionMode]);
+  const openContextMenuAt = useCallback(
+    (entry, position) => {
+      if (!onOpenContextMenu) return;
+      if (selectionMode) {
+        onOpenContextMenu(null, position, 'selection');
+        return;
+      }
+      onOpenContextMenu(entry, position, 'entry');
+    },
+    [onOpenContextMenu, selectionMode]
+  );
 
-  const getEntryFromElement = useCallback((element) => {
-    const pathValue = element?.dataset?.path;
-    return pathValue ? entryByPath.get(pathValue)?.entry || null : null;
-  }, [entryByPath]);
+  const getEntryFromElement = useCallback(
+    (element) => {
+      const pathValue = element?.dataset?.path;
+      return pathValue ? entryByPath.get(pathValue)?.entry || null : null;
+    },
+    [entryByPath]
+  );
 
-  const handleItemPointerDown = useCallback((event) => {
-    if (!onOpenContextMenu) return;
-    if (event.pointerType === 'mouse') return;
-    const entry = getEntryFromElement(event.currentTarget);
-    if (!entry && !selectionMode) return;
-    clearLongPress();
-    longPressFiredRef.current = false;
-    const { clientX, clientY } = event;
-    longPressTimerRef.current = setTimeout(() => {
-      openContextMenuAt(entry, { x: clientX, y: clientY });
-      longPressFiredRef.current = true;
+  const handleItemPointerDown = useCallback(
+    (event) => {
+      if (!onOpenContextMenu) return;
+      if (event.pointerType === 'mouse') return;
+      const entry = getEntryFromElement(event.currentTarget);
+      if (!entry && !selectionMode) return;
       clearLongPress();
-    }, 500);
-  }, [clearLongPress, getEntryFromElement, onOpenContextMenu, openContextMenuAt, selectionMode]);
+      longPressFiredRef.current = false;
+      const { clientX, clientY } = event;
+      longPressTimerRef.current = setTimeout(() => {
+        openContextMenuAt(entry, { x: clientX, y: clientY });
+        longPressFiredRef.current = true;
+        clearLongPress();
+      }, 500);
+    },
+    [clearLongPress, getEntryFromElement, onOpenContextMenu, openContextMenuAt, selectionMode]
+  );
 
   const handlePointerUp = useCallback(() => {
     clearLongPress();
   }, [clearLongPress]);
 
-  const handleItemContextMenu = useCallback((event) => {
-    if (!onOpenContextMenu) return;
-    event.preventDefault();
-    const entry = getEntryFromElement(event.currentTarget);
-    if (!entry && !selectionMode) return;
-    openContextMenuAt(entry, { x: event.clientX, y: event.clientY });
-  }, [getEntryFromElement, onOpenContextMenu, openContextMenuAt, selectionMode]);
+  const handleItemContextMenu = useCallback(
+    (event) => {
+      if (!onOpenContextMenu) return;
+      event.preventDefault();
+      const entry = getEntryFromElement(event.currentTarget);
+      if (!entry && !selectionMode) return;
+      openContextMenuAt(entry, { x: event.clientX, y: event.clientY });
+    },
+    [getEntryFromElement, onOpenContextMenu, openContextMenuAt, selectionMode]
+  );
 
-  const handleItemClick = useCallback((event) => {
-    if (longPressFiredRef.current) {
-      longPressFiredRef.current = false;
-      return;
-    }
-    const entry = getEntryFromElement(event.currentTarget);
-    handleActivate(entry);
-  }, [getEntryFromElement, handleActivate]);
+  const handleItemClick = useCallback(
+    (event) => {
+      if (longPressFiredRef.current) {
+        longPressFiredRef.current = false;
+        return;
+      }
+      const entry = getEntryFromElement(event.currentTarget);
+      handleActivate(entry);
+    },
+    [getEntryFromElement, handleActivate]
+  );
 
-  const itemHandlers = useMemo(() => ({
-    onClick: handleItemClick,
-    onPointerDown: handleItemPointerDown,
-    onPointerUp: handlePointerUp,
-    onContextMenu: handleItemContextMenu
-  }), [handleItemClick, handleItemContextMenu, handleItemPointerDown, handlePointerUp]);
+  const itemHandlers = useMemo(
+    () => ({
+      onClick: handleItemClick,
+      onPointerDown: handleItemPointerDown,
+      onPointerUp: handlePointerUp,
+      onContextMenu: handleItemContextMenu,
+    }),
+    [handleItemClick, handleItemContextMenu, handleItemPointerDown, handlePointerUp]
+  );
 
   const overscanBy = OVERSCAN_BY_ZOOM[zoomLevel] || OVERSCAN_BY_ZOOM.md;
   const initialItemCount = INITIAL_ITEMS_BY_ZOOM[zoomLevel] || INITIAL_ITEMS_BY_ZOOM.md;
@@ -448,10 +438,7 @@ const FileList = ({
     const gridComponents = { List: GridList };
 
     return (
-      <div
-        className={`grid-virtual${gridReady ? ' is-ready' : ''}`}
-        ref={containerRef}
-      >
+      <div className={`grid-virtual${gridReady ? ' is-ready' : ''}`} ref={containerRef}>
         {folders.length > 0 && (
           <div className="grid grid-folder-section">
             {folders.map((entry) => {
@@ -509,10 +496,7 @@ const FileList = ({
     : { Scroller: ListScroller, List: ListContainer };
 
   return (
-    <div
-      className={`list list-virtual list-zoom-${zoomLevel}`}
-      ref={containerRef}
-    >
+    <div className={`list list-virtual list-zoom-${zoomLevel}`} ref={containerRef}>
       <div className="list-header">
         <span className="list-cell name">Name</span>
         <span className="list-cell size">Size</span>

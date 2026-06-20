@@ -1,8 +1,4 @@
-import {
-  getEntryExtension,
-  isAudioEntry,
-  isVideoEntry
-} from './fileTypes.js';
+import { getEntryExtension, isAudioEntry, isVideoEntry } from './fileTypes.js';
 
 const VIDEO_MIME_TYPES = {
   '.mp4': 'video/mp4',
@@ -28,7 +24,7 @@ const VIDEO_MIME_TYPES = {
   '.rmvb': 'video/vnd.rn-realvideo',
   '.mxf': 'video/mxf',
   '.m1v': 'video/mpeg',
-  '.m2v': 'video/mpeg'
+  '.m2v': 'video/mpeg',
 };
 
 const IMAGE_MIME_TYPES = {
@@ -43,7 +39,7 @@ const IMAGE_MIME_TYPES = {
   '.tiff': 'image/tiff',
   '.tif': 'image/tiff',
   '.heic': 'image/heic',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
 };
 
 const AUDIO_MIME_TYPES = {
@@ -55,7 +51,7 @@ const AUDIO_MIME_TYPES = {
   '.ogg': 'audio/ogg',
   '.wma': 'audio/x-ms-wma',
   '.alac': 'audio/x-alac',
-  '.aiff': 'audio/aiff'
+  '.aiff': 'audio/aiff',
 };
 
 const videoSupportCache = new Map();

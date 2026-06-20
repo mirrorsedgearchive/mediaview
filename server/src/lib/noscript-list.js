@@ -3,12 +3,13 @@ import { getCacheEpoch, getDirectoryEntries, hasDirectoryEntry } from './hash-ca
 import { isExcludedPath, isHiddenPath } from './exclude.js';
 import { getPageContext, getRequestPath } from './page-context.js';
 
-const escapeHtml = (value) => String(value || '')
-  .replace(/&/g, '&amp;')
-  .replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;')
-  .replace(/'/g, '&#39;');
+const escapeHtml = (value) =>
+  String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 const encodePath = (value) => {
   if (!value) return '';
@@ -40,17 +41,17 @@ const buildListItems = (entries, baseUrl, basePath) => {
   if (!entries?.length) {
     return '<li>Empty folder</li>';
   }
-  return entries.map((entry) => {
-    const relativePath = basePath
-      ? `${basePath}/${entry.name}`
-      : entry.name;
-    const encodedPath = encodePath(relativePath);
-    const href = `${baseUrl}/${encodedPath}`;
-    const name = escapeHtml(entry.name);
-    return entry.isDir
-      ? `<li><a href="${href}">${name}/</a></li>`
-      : `<li><a href="${href}">${name}</a></li>`;
-  }).join('\n');
+  return entries
+    .map((entry) => {
+      const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+      const encodedPath = encodePath(relativePath);
+      const href = `${baseUrl}/${encodedPath}`;
+      const name = escapeHtml(entry.name);
+      return entry.isDir
+        ? `<li><a href="${href}">${name}/</a></li>`
+        : `<li><a href="${href}">${name}</a></li>`;
+    })
+    .join('\n');
 };
 
 export const buildNoscriptDirectoryList = (req) => {
@@ -89,12 +90,11 @@ export const buildNoscriptDirectoryList = (req) => {
   const listItems = buildListItems(entries, baseUrl, requestPath);
   const breadcrumbs = buildBreadcrumbs(requestPath, baseUrl);
 
-  const html = (
+  const html =
     `<div class="noscript-directory">` +
     `<div class="noscript-breadcrumbs">${breadcrumbs}</div>` +
     `<ul>${listItems}</ul>` +
-    `</div>`
-  );
+    `</div>`;
   NOSCRIPT_CACHE.set(cacheKey, { html });
   return html;
 };
