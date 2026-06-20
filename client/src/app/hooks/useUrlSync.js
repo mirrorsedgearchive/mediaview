@@ -7,7 +7,7 @@ export const useUrlSync = ({
   applySearch,
   navigateTo,
   setLightboxOpen,
-  searchStateRef
+  searchStateRef,
 }) => {
   const callbacksRef = useRef({
     clearSearch,
@@ -15,7 +15,7 @@ export const useUrlSync = ({
     applySearch,
     navigateTo,
     setLightboxOpen,
-    searchStateRef
+    searchStateRef,
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export const useUrlSync = ({
       applySearch,
       navigateTo,
       setLightboxOpen,
-      searchStateRef
+      searchStateRef,
     };
   }, [applySearch, clearSearch, navigateTo, searchStateRef, setLightboxOpen, setSearchInput]);
 
@@ -37,7 +37,7 @@ export const useUrlSync = ({
         applySearch: currentApplySearch,
         navigateTo: currentNavigateTo,
         setLightboxOpen: currentSetLightboxOpen,
-        searchStateRef: currentSearchStateRef
+        searchStateRef: currentSearchStateRef,
       } = callbacksRef.current;
       const urlState = readUrlState();
       if (urlState.search) {
@@ -46,7 +46,8 @@ export const useUrlSync = ({
         currentSetLightboxOpen(false);
         return;
       }
-      const { searchQuery: currentQuery, searchInput: currentInput } = currentSearchStateRef.current;
+      const { searchQuery: currentQuery, searchInput: currentInput } =
+        currentSearchStateRef.current;
       if (currentQuery || currentInput.trim()) {
         currentClearSearch();
       }

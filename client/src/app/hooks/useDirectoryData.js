@@ -43,7 +43,7 @@ export const useDirectoryData = () => {
     loading: true,
     error: null,
     retryable: false,
-    code: null
+    code: null,
   });
   const {
     tree,
@@ -54,7 +54,7 @@ export const useDirectoryData = () => {
     expandAncestors,
     toggleNode,
     collapseAll,
-    retryTree
+    retryTree,
   } = useDirectoryTree();
   const {
     applyListing,
@@ -62,7 +62,7 @@ export const useDirectoryData = () => {
     getCachedListing,
     getLastResolvablePath,
     hydratePathChain,
-    resolveLastGoodPath
+    resolveLastGoodPath,
   } = useDirectoryCache({ updateTreeWithEntries });
   const currentPathRef = useRef('');
   const [lastGoodPath, setLastGoodPath] = useState('');
@@ -80,7 +80,13 @@ export const useDirectoryData = () => {
     return entries.find((entry) => entry.path === selectPath || entry.name === selectPath) || null;
   };
 
-  const applyDirectoryState = (data, pathValue, selection, selectPath, preserveSelection = false) => {
+  const applyDirectoryState = (
+    data,
+    pathValue,
+    selection,
+    selectPath,
+    preserveSelection = false
+  ) => {
     setDirectory(data);
     setCurrentPath(pathValue);
     if (selection) {
@@ -147,16 +153,17 @@ export const useDirectoryData = () => {
       setLastGoodPathValue(fallbackPath, { allowEmpty: true });
       resolvePathRef.current += 1;
       const requestId = resolvePathRef.current;
-      void resolveLastGoodPath(pathValue, () => resolvePathRef.current === requestId)
-        .then((lastSuccess) => {
+      void resolveLastGoodPath(pathValue, () => resolvePathRef.current === requestId).then(
+        (lastSuccess) => {
           if (lastSuccess === null) return;
           setLastGoodPathValue(lastSuccess, { allowEmpty: true });
-        });
+        }
+      );
       setStatus({
         loading: false,
         error: error.message,
         retryable: Boolean(error.retryable),
-        code: Number.isFinite(error?.status) ? error.status : null
+        code: Number.isFinite(error?.status) ? error.status : null,
       });
       return { selection: null, shouldLightbox: false };
     }
@@ -173,7 +180,7 @@ export const useDirectoryData = () => {
           setSelected((prev) =>
             prev && listing.entries.find((entry) => entry.path === prev.path) ? prev : null
           );
-        }
+        },
       });
       applyListing(pathValue, data, { expand: false });
     } catch (error) {
@@ -182,7 +189,7 @@ export const useDirectoryData = () => {
         loading: false,
         error: error.message,
         retryable: Boolean(error.retryable),
-        code: Number.isFinite(error?.status) ? error.status : null
+        code: Number.isFinite(error?.status) ? error.status : null,
       });
     }
   };
@@ -243,7 +250,7 @@ export const useDirectoryData = () => {
     selection: {
       selected,
       setSelected,
-      pendingSelection
+      pendingSelection,
     },
     tree: {
       data: tree,
@@ -251,17 +258,17 @@ export const useDirectoryData = () => {
       handleToggle,
       collapseAll,
       expandToCurrentPath,
-      retryTree
+      retryTree,
     },
     search,
     view: {
       mode: viewMode,
       setMode: setViewMode,
       zoom: zoomLevel,
-      setZoom: setZoomLevel
+      setZoom: setZoomLevel,
     },
     actions: {
-      loadDirectory
-    }
+      loadDirectory,
+    },
   };
 };

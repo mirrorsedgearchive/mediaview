@@ -7,7 +7,12 @@ import { isThumbablePath } from '../lib/classify.js';
 import { isExcludedPath } from '../lib/exclude.js';
 import { matchesEtag, MEDIA_CACHE_CONTROL } from '../lib/http.js';
 import { decodePathSegments, resolveSafePath, sanitizeRequestPath } from '../lib/paths.js';
-import { getHashEntry, getThumbErrCount, hasHashEntry, THUMB_ERR_LIMIT } from '../lib/hash-cache.js';
+import {
+  getHashEntry,
+  getThumbErrCount,
+  hasHashEntry,
+  THUMB_ERR_LIMIT,
+} from '../lib/hash-cache.js';
 import { getThumbPath } from '../lib/thumbnails.js';
 
 const buildThumbnailMissEtag = (hash, size, format = '') =>
@@ -19,7 +24,10 @@ const resolveThumbPath = (hash, size, originalName, format = '') =>
     : getThumbPath(hash, size, originalName);
 
 const parseThumbnailRequest = (req) => {
-  if (typeof req.params.size === 'string' && (typeof req.params.path === 'string' || Array.isArray(req.params.path))) {
+  if (
+    typeof req.params.size === 'string' &&
+    (typeof req.params.path === 'string' || Array.isArray(req.params.path))
+  ) {
     const rawSize = req.params.size.toString().toLowerCase();
     const decodedPath = decodePathSegments(req.params.path);
     if (rawSize === 'jpg') {

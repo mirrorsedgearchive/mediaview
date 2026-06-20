@@ -8,12 +8,12 @@ export const readUrlState = () => {
         .join('/')
     : '';
   const isSearch = decodedPath === 'search';
-  const search = isSearch ? (params.get('q') || '') : '';
+  const search = isSearch ? params.get('q') || '' : '';
   const preview = params.get('preview') || params.get('item') || '';
   return {
     path: isSearch ? '' : decodedPath,
     preview: isSearch ? '' : preview,
-    search
+    search,
   };
 };
 

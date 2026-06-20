@@ -5,7 +5,7 @@ import {
   getImageSupportStatus,
   isAudioPlayable,
   isVideoPlayable,
-  resolveImageSupportStatus
+  resolveImageSupportStatus,
 } from '../../lib/media.js';
 import {
   getEntryExtension,
@@ -14,7 +14,7 @@ import {
   isImageEntry,
   isTextEntry,
   isVideoEntry,
-  isViewableEntry
+  isViewableEntry,
 } from '../../lib/fileTypes.js';
 
 const LARGE_FILE_THRESHOLD_BYTES = 10 * 1024 * 1024;
@@ -22,7 +22,7 @@ const TEXT_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
 const EMPTY_MEDIA_META = {
   width: null,
   height: null,
-  duration: null
+  duration: null,
 };
 const IDLE_TEXT_PREVIEW = {
   status: 'idle',
@@ -30,11 +30,11 @@ const IDLE_TEXT_PREVIEW = {
   html: '',
   truncated: false,
   error: '',
-  retryable: false
+  retryable: false,
 };
 const LOADING_TEXT_PREVIEW = {
   ...IDLE_TEXT_PREVIEW,
-  status: 'loading'
+  status: 'loading',
 };
 
 let markdownLibPromise = null;
@@ -48,7 +48,7 @@ const resetMediaState = ({
   setImagePreviewFailed,
   setLargeFileWarningDismissed,
   setMediaMeta,
-  setVideoPreviewFailed
+  setVideoPreviewFailed,
 }) => {
   setLargeFileWarningDismissed(false);
   setDisableLargeFileWarningsChecked(false);
@@ -65,14 +65,14 @@ const resetClosedState = ({
   setMediaLoading,
   setMediaMeta,
   setTextPreview,
-  setVideoPreviewFailed
+  setVideoPreviewFailed,
 }) => {
   resetMediaState({
     setDisableLargeFileWarningsChecked,
     setImagePreviewFailed,
     setLargeFileWarningDismissed,
     setMediaMeta,
-    setVideoPreviewFailed
+    setVideoPreviewFailed,
   });
   setMediaLoading(false);
   setTextPreview(IDLE_TEXT_PREVIEW);
@@ -81,13 +81,12 @@ const resetClosedState = ({
 
 const loadMarkdownLibs = () => {
   if (!markdownLibPromise) {
-    markdownLibPromise = Promise.all([
-      import('snarkdown'),
-      import('xss')
-    ]).then(([snarkdownModule, xssModule]) => ({
-      snarkdown: snarkdownModule.default || snarkdownModule,
-      xss: xssModule.default || xssModule
-    }));
+    markdownLibPromise = Promise.all([import('snarkdown'), import('xss')]).then(
+      ([snarkdownModule, xssModule]) => ({
+        snarkdown: snarkdownModule.default || snarkdownModule,
+        xss: xssModule.default || xssModule,
+      })
+    );
   }
   return markdownLibPromise;
 };
@@ -107,8 +106,8 @@ const cancelPendingIdlePreload = () => {
   pendingLightboxIdleCallbackId = null;
 };
 
-const isWithinPreloadLimit = (entry) => !Number.isFinite(entry?.size)
-  || entry.size < LARGE_FILE_THRESHOLD_BYTES;
+const isWithinPreloadLimit = (entry) =>
+  !Number.isFinite(entry?.size) || entry.size < LARGE_FILE_THRESHOLD_BYTES;
 
 const isEligibleForAdjacentPreload = async (entry) => {
   if (!entry?.path || entry.isDir) return false;
@@ -190,40 +189,45 @@ const scheduleSpeculativePreload = (entry, signal) => {
   pendingLightboxIdleCallbackId = window.setTimeout(runPreload, 120);
 };
 
-const waitForIdleSlice = (signal) => new Promise((resolve) => {
-  if (signal.aborted) {
-    resolve();
-    return;
-  }
-
-  let settled = false;
-  let idleId = null;
-  let timeoutId = null;
-
-  const finish = () => {
-    if (settled) return;
-    settled = true;
-    signal.removeEventListener('abort', handleAbort);
-    if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
-      window.cancelIdleCallback(idleId);
+const waitForIdleSlice = (signal) =>
+  new Promise((resolve) => {
+    if (signal.aborted) {
+      resolve();
+      return;
     }
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
+
+    let settled = false;
+    let idleId = null;
+    let timeoutId = null;
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener('abort', handleAbort);
+      if (
+        idleId !== null &&
+        typeof window !== 'undefined' &&
+        typeof window.cancelIdleCallback === 'function'
+      ) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+      resolve();
+    };
+
+    const handleAbort = () => {
+      finish();
+    };
+
+    signal.addEventListener('abort', handleAbort, { once: true });
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(finish, { timeout: 300 });
+      return;
     }
-    resolve();
-  };
-
-  const handleAbort = () => {
-    finish();
-  };
-
-  signal.addEventListener('abort', handleAbort, { once: true });
-  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-    idleId = window.requestIdleCallback(finish, { timeout: 300 });
-    return;
-  }
-  timeoutId = window.setTimeout(finish, 140);
-});
+    timeoutId = window.setTimeout(finish, 140);
+  });
 
 const scheduleSpeculativePreloadSequence = async (entries, signal) => {
   for (const entry of entries) {
@@ -273,7 +277,7 @@ export const useLightboxController = ({
   onNext,
   onNavigatePath,
   onDisableLargeFileWarnings,
-  warnOnLargeFiles = true
+  warnOnLargeFiles = true,
 }) => {
   const [mediaLoading, setMediaLoading] = useState(false);
   const [mediaMeta, setMediaMeta] = useState(EMPTY_MEDIA_META);
@@ -311,55 +315,51 @@ export const useLightboxController = ({
   const shouldShowDimensions = isImage || isVideo;
   const hasDimensions = Number.isFinite(mediaMeta.width) && Number.isFinite(mediaMeta.height);
   const fileKey = selectedPath;
-  const isLargeFile = Number.isFinite(selectedSize)
-    && selectedSize >= LARGE_FILE_THRESHOLD_BYTES;
+  const isLargeFile = Number.isFinite(selectedSize) && selectedSize >= LARGE_FILE_THRESHOLD_BYTES;
   const isSessionApprovedLargeFile = fileKey && loadedLargeFileKeys.has(fileKey);
-  const isLargeText = isText
-    && Number.isFinite(selectedSize)
-    && selectedSize > TEXT_PREVIEW_MAX_BYTES;
+  const isLargeText =
+    isText && Number.isFinite(selectedSize) && selectedSize > TEXT_PREVIEW_MAX_BYTES;
   const canPreviewText = !isLargeText;
   const videoPlayable = isVideoPlayable(selectedEntry);
   const audioPlayable = isAudioPlayable(selectedEntry);
   const imageCapabilityKnown = imageSupportStatus !== 'pending';
   const canPreviewVideo = !isVideo || (videoPlayable && !videoPreviewFailed);
-  const canPreviewImage = !isImage
-    || (imageSupportStatus !== 'unsupported' && !imagePreviewFailed);
+  const canPreviewImage = !isImage || (imageSupportStatus !== 'unsupported' && !imagePreviewFailed);
   const canPreviewAudio = !isAudio || audioPlayable;
-  const canPreviewEntry = isViewableEntry(selectedEntry)
-    && canPreviewVideo
-    && canPreviewImage
-    && canPreviewAudio
-    && canPreviewText;
-  const shouldWarnLargeFile = isLargeFile
-    && !isStreamable
-    && canPreviewEntry
-    && (!isImage || imageCapabilityKnown)
-    && warnOnLargeFiles;
-  const shouldGateLargeFile = shouldWarnLargeFile
-    && !largeFileWarningDismissed
-    && !isSessionApprovedLargeFile;
+  const canPreviewEntry =
+    isViewableEntry(selectedEntry) &&
+    canPreviewVideo &&
+    canPreviewImage &&
+    canPreviewAudio &&
+    canPreviewText;
+  const shouldWarnLargeFile =
+    isLargeFile &&
+    !isStreamable &&
+    canPreviewEntry &&
+    (!isImage || imageCapabilityKnown) &&
+    warnOnLargeFiles;
+  const shouldGateLargeFile =
+    shouldWarnLargeFile && !largeFileWarningDismissed && !isSessionApprovedLargeFile;
   const shouldRenderImage = isImage && displayedImagePath === selectedPath;
-  const isCurrentPreviewReady = !shouldGateLargeFile && (() => {
-    if (isImage) {
-      return imageCapabilityKnown
-        && canPreviewImage
-        && !mediaLoading
-        && shouldRenderImage;
-    }
-    if (isVideo) return canPreviewVideo && !mediaLoading;
-    if (isAudio) return canPreviewAudio && Number.isFinite(mediaMeta.duration);
-    if (isText) return textPreview.status === 'ready';
-    return false;
-  })();
+  const isCurrentPreviewReady =
+    !shouldGateLargeFile &&
+    (() => {
+      if (isImage) {
+        return imageCapabilityKnown && canPreviewImage && !mediaLoading && shouldRenderImage;
+      }
+      if (isVideo) return canPreviewVideo && !mediaLoading;
+      if (isAudio) return canPreviewAudio && Number.isFinite(mediaMeta.duration);
+      if (isText) return textPreview.status === 'ready';
+      return false;
+    })();
   const showLargeFileWarning = shouldGateLargeFile;
-  const showMediaPreview = !shouldGateLargeFile
-    && imageCapabilityKnown
-    && canPreviewVideo
-    && canPreviewImage
-    && (isImage || isVideo);
-  const showImagePending = !shouldGateLargeFile
-    && isImage
-    && imageSupportStatus === 'pending';
+  const showMediaPreview =
+    !shouldGateLargeFile &&
+    imageCapabilityKnown &&
+    canPreviewVideo &&
+    canPreviewImage &&
+    (isImage || isVideo);
+  const showImagePending = !shouldGateLargeFile && isImage && imageSupportStatus === 'pending';
   const showAudioPreview = !shouldGateLargeFile && isAudio && canPreviewAudio;
   const showDocumentPreview = !shouldGateLargeFile && isDocument;
   const showTextPreview = !shouldGateLargeFile && isText;
@@ -370,9 +370,7 @@ export const useLightboxController = ({
   const totalEntries = lightboxEntries.length;
   const pathValue = selectedPath;
   const pathLabel = pathValue ? `/${pathValue}` : '/';
-  const dimensionsLabel = hasDimensions
-    ? `${mediaMeta.width} × ${mediaMeta.height}`
-    : '-- × --';
+  const dimensionsLabel = hasDimensions ? `${mediaMeta.width} × ${mediaMeta.height}` : '-- × --';
 
   useEffect(() => {
     selectedPathRef.current = selectedPath;
@@ -408,7 +406,7 @@ export const useLightboxController = ({
         if (!isWarmedImage) {
           const response = await fetch(previewSource, {
             signal: controller.signal,
-            priority: 'high'
+            priority: 'high',
           });
           if (!response.ok) {
             throw new Error('Failed to load image preview');
@@ -438,7 +436,7 @@ export const useLightboxController = ({
     open,
     previewSource,
     selectedPath,
-    shouldGateLargeFile
+    shouldGateLargeFile,
   ]);
 
   useEffect(() => {
@@ -451,7 +449,7 @@ export const useLightboxController = ({
         setMediaLoading,
         setMediaMeta,
         setTextPreview,
-        setVideoPreviewFailed
+        setVideoPreviewFailed,
       });
       return;
     }
@@ -461,7 +459,7 @@ export const useLightboxController = ({
         setImagePreviewFailed,
         setLargeFileWarningDismissed,
         setMediaMeta,
-        setVideoPreviewFailed
+        setVideoPreviewFailed,
       });
       setMediaLoading(false);
       onClose();
@@ -472,7 +470,7 @@ export const useLightboxController = ({
       setImagePreviewFailed,
       setLargeFileWarningDismissed,
       setMediaMeta,
-      setVideoPreviewFailed
+      setVideoPreviewFailed,
     });
   }, [isDirectory, onClose, open, selectedPath]);
 
@@ -513,7 +511,7 @@ export const useLightboxController = ({
       setMediaMeta({
         width: videoRef.current.videoWidth,
         height: videoRef.current.videoHeight,
-        duration: videoRef.current.duration
+        duration: videoRef.current.duration,
       });
     }
   }, [open, selectedPath, isImage, shouldRenderImage, isVideo]);
@@ -549,7 +547,8 @@ export const useLightboxController = ({
         if (!response.ok) {
           const error = new Error('Failed to load text preview');
           error.status = response.status;
-          error.retryable = response.status >= 500 || response.status === 408 || response.status === 429;
+          error.retryable =
+            response.status >= 500 || response.status === 408 || response.status === 429;
           throw error;
         }
         const content = await response.text();
@@ -568,7 +567,7 @@ export const useLightboxController = ({
           html,
           truncated: false,
           error: '',
-          retryable: false
+          retryable: false,
         });
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -579,7 +578,7 @@ export const useLightboxController = ({
           html: '',
           truncated: false,
           error: error.message,
-          retryable
+          retryable,
         });
       }
     };
@@ -597,7 +596,7 @@ export const useLightboxController = ({
     previewSource,
     selectedPath,
     shouldGateLargeFile,
-    textRetryToken
+    textRetryToken,
   ]);
 
   useEffect(() => {
@@ -609,7 +608,11 @@ export const useLightboxController = ({
   useEffect(() => {
     if (!open || !isCurrentPreviewReady) return undefined;
 
-    const preloadEntries = getAdjacentPreloadEntries(lightboxEntries, activeIndex, preloadDirection);
+    const preloadEntries = getAdjacentPreloadEntries(
+      lightboxEntries,
+      activeIndex,
+      preloadDirection
+    );
     const preloadKeys = preloadEntries.map((entry) => entry.path);
     if (!preloadKeys.length) return undefined;
 
@@ -702,17 +705,20 @@ export const useLightboxController = ({
     onNavigatePath?.(selectedEntry);
   }, [onNavigatePath, selectedEntry]);
 
-  const handleImageLoad = useCallback((event) => {
-    if (selectedPath) {
-      preloadedLightboxAssetKeys.add(selectedPath);
-    }
-    setMediaLoading(false);
-    setMediaMeta({
-      width: event.currentTarget.naturalWidth,
-      height: event.currentTarget.naturalHeight,
-      duration: null
-    });
-  }, [selectedPath]);
+  const handleImageLoad = useCallback(
+    (event) => {
+      if (selectedPath) {
+        preloadedLightboxAssetKeys.add(selectedPath);
+      }
+      setMediaLoading(false);
+      setMediaMeta({
+        width: event.currentTarget.naturalWidth,
+        height: event.currentTarget.naturalHeight,
+        duration: null,
+      });
+    },
+    [selectedPath]
+  );
 
   const handleImageError = useCallback(() => {
     setMediaLoading(false);
@@ -723,7 +729,7 @@ export const useLightboxController = ({
     setMediaMeta({
       width: event.currentTarget.videoWidth,
       height: event.currentTarget.videoHeight,
-      duration: event.currentTarget.duration
+      duration: event.currentTarget.duration,
     });
   }, []);
 
@@ -740,7 +746,7 @@ export const useLightboxController = ({
     setMediaMeta({
       width: null,
       height: null,
-      duration: event.currentTarget.duration
+      duration: event.currentTarget.duration,
     });
   }, []);
 

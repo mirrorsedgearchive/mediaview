@@ -9,7 +9,7 @@ import {
   useSearchStateContext,
   useSelectionActionsContext,
   useSelectionStateContext,
-  useViewContext
+  useViewContext,
 } from '../contexts/index.js';
 
 const rootLabel = 'Archive';
@@ -53,7 +53,7 @@ const summarizeEntries = (entries, selectedPaths) => {
 
   return {
     entryCount: entries.length,
-    canSelectAllFiles: fileCount > 0 && selectedFileCount < fileCount
+    canSelectAllFiles: fileCount > 0 && selectedFileCount < fileCount,
   };
 };
 
@@ -63,7 +63,7 @@ const buildTitleText = ({
   hasError,
   isRoot,
   directory,
-  currentPathName
+  currentPathName,
 }) => {
   if (isSearchActive) return 'Search results';
   if (isNotFound) return 'Not found';
@@ -80,7 +80,7 @@ const buildSubLabel = ({
   searchCount,
   searchStatus,
   hasError,
-  directory
+  directory,
 }) => {
   if (isSearchActive) {
     if (searchLoading) {
@@ -91,9 +91,7 @@ const buildSubLabel = ({
     }
 
     const resultLabel = `${searchCount} result${searchCount === 1 ? '' : 's'} for "${searchQuery}"`;
-    return searchStatus?.truncated
-      ? `${resultLabel} (showing first ${searchCount})`
-      : resultLabel;
+    return searchStatus?.truncated ? `${resultLabel} (showing first ${searchCount})` : resultLabel;
   }
 
   if (hasError) return '';
@@ -109,7 +107,7 @@ const useDirectoryPanelController = () => {
     status,
     lastGoodPath,
     entries,
-    useWindowScroll
+    useWindowScroll,
   } = useDirectoryDataContext() || {};
   const { onNavigate, onSelect, onRetryList } = useDirectoryActionsContext() || {};
   const { viewMode, zoomLevel } = useViewContext();
@@ -117,23 +115,17 @@ const useDirectoryPanelController = () => {
     selectedPath,
     selectionMode,
     selectedPaths,
-    selectedCount = 0
+    selectedCount = 0,
   } = useSelectionStateContext() || {};
-  const {
-    onToggleSelection,
-    onSetSelectionMode,
-    onSelectAllFiles
-  } = useSelectionActionsContext() || {};
-  const {
-    downloadState,
-    downloadPrompt
-  } = useDownloadStateContext() || {};
+  const { onToggleSelection, onSetSelectionMode, onSelectAllFiles } =
+    useSelectionActionsContext() || {};
+  const { downloadState, downloadPrompt } = useDownloadStateContext() || {};
   const {
     onRequestDownload,
     onConfirmDownload,
     onCancelDownloadPrompt,
     onCancelDownload,
-    onResetDownloadState
+    onResetDownloadState,
   } = useDownloadActionsContext() || {};
   const {
     contextMenu,
@@ -143,7 +135,7 @@ const useDirectoryPanelController = () => {
     onContextDownload,
     onContextShare,
     onContextCancelSelection,
-    onContextGoToEntry
+    onContextGoToEntry,
   } = useContextMenuContext() || {};
   const { searchQuery, searchResults, searchStatus } = useSearchStateContext() || {};
   const { onRetrySearch, onClearSearch } = useSearchActionsContext() || {};
@@ -160,17 +152,17 @@ const useDirectoryPanelController = () => {
   const searchError = isSearchActive && searchStatus?.error;
   const isRoot = !currentPath;
   const hasSelection = selectedCount > 0;
-  const isDownloading = downloadState?.status === 'listing'
-    || downloadState?.status === 'downloading'
-    || downloadState?.status === 'finalizing';
+  const isDownloading =
+    downloadState?.status === 'listing' ||
+    downloadState?.status === 'downloading' ||
+    downloadState?.status === 'finalizing';
   const hasDownloadStatus = Boolean(downloadState?.status) && downloadState.status !== 'idle';
   const progressMax = downloadState?.totalBytes || downloadState?.totalFiles || 1;
   const progressValue = downloadState?.totalBytes
     ? downloadState?.processedBytes
     : downloadState?.processedFiles;
-  const contextMenuEntryPath = contextMenu?.open && contextMenu?.type === 'entry'
-    ? (contextMenu.entry?.path || '')
-    : '';
+  const contextMenuEntryPath =
+    contextMenu?.open && contextMenu?.type === 'entry' ? contextMenu.entry?.path || '' : '';
   const contentKey = isSearchActive
     ? `search:${searchQuery || 'results'}:${searchStatus?.loading ? 'loading' : 'done'}:${searchCount}`
     : `path:${currentPath || 'root'}`;
@@ -185,49 +177,60 @@ const useDirectoryPanelController = () => {
     [selectedPaths, sortedEntries]
   );
 
-  const titleText = useMemo(() => buildTitleText({
-    isSearchActive,
-    isNotFound,
-    hasError,
-    isRoot,
-    directory,
-    currentPathName
-  }), [currentPathName, directory, hasError, isNotFound, isRoot, isSearchActive]);
+  const titleText = useMemo(
+    () =>
+      buildTitleText({
+        isSearchActive,
+        isNotFound,
+        hasError,
+        isRoot,
+        directory,
+        currentPathName,
+      }),
+    [currentPathName, directory, hasError, isNotFound, isRoot, isSearchActive]
+  );
 
-  const subLabel = useMemo(() => buildSubLabel({
-    isSearchActive,
-    searchLoading,
-    searchQuery,
-    searchError,
-    searchCount,
-    searchStatus,
-    hasError,
-    directory
-  }), [
-    directory,
-    hasError,
-    isSearchActive,
-    searchCount,
-    searchError,
-    searchLoading,
-    searchQuery,
-    searchStatus
-  ]);
+  const subLabel = useMemo(
+    () =>
+      buildSubLabel({
+        isSearchActive,
+        searchLoading,
+        searchQuery,
+        searchError,
+        searchCount,
+        searchStatus,
+        hasError,
+        directory,
+      }),
+    [
+      directory,
+      hasError,
+      isSearchActive,
+      searchCount,
+      searchError,
+      searchLoading,
+      searchQuery,
+      searchStatus,
+    ]
+  );
 
   const handlePanelBodyRef = useCallback((node) => {
     panelBodyRef.current = node;
     setPanelBodyNode((prev) => (prev === node ? prev : node));
   }, []);
 
-  const handleSortClick = useCallback((key) => {
-    if (sortKey === key) {
-      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-      return;
-    }
+  const handleSortClick = useCallback(
+    (key) => {
+      if (sortKey === key) {
+        setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+        return;
+      }
 
-    setSortKey(key);
-    setSortDir('asc');
-  }, [sortKey]);
+      setSortKey(key);
+      setSortDir('asc');
+    },
+    [sortKey]
+  );
 
   const handleEnableSelection = useCallback(() => {
     onSetSelectionMode?.(true);
@@ -291,7 +294,7 @@ const useDirectoryPanelController = () => {
     onCancelDownload,
     onCancelDownloadPrompt,
     onSetSelectionMode,
-    selectionMode
+    selectionMode,
   ]);
 
   useEffect(() => {
@@ -309,156 +312,164 @@ const useDirectoryPanelController = () => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [currentPath, isSearchActive, selectedPath, selectionMode, useWindowScroll]);
 
-  const headerProps = useMemo(() => ({
-    selectionMode,
-    titleText,
-    subLabel,
-    hasError,
-    sortKey,
-    sortDir,
-    onSortClick: handleSortClick,
-    onEnableSelection: handleEnableSelection,
-    onCancelSelection: handleCancelSelection
-  }), [
-    handleCancelSelection,
-    handleEnableSelection,
-    handleSortClick,
-    hasError,
-    selectionMode,
-    sortDir,
-    sortKey,
-    subLabel,
-    titleText
-  ]);
+  const headerProps = useMemo(
+    () => ({
+      selectionMode,
+      titleText,
+      subLabel,
+      hasError,
+      sortKey,
+      sortDir,
+      onSortClick: handleSortClick,
+      onEnableSelection: handleEnableSelection,
+      onCancelSelection: handleCancelSelection,
+    }),
+    [
+      handleCancelSelection,
+      handleEnableSelection,
+      handleSortClick,
+      hasError,
+      selectionMode,
+      sortDir,
+      sortKey,
+      subLabel,
+      titleText,
+    ]
+  );
 
-  const bodyProps = useMemo(() => ({
-    handlePanelBodyRef,
-    contextMenu,
-    onCloseContextMenu,
-    canSelectAllFiles,
-    onContextSelectAllFiles: handleContextSelectAllFiles,
-    onContextCancelSelection,
-    onContextSelect,
-    onContextDownload,
-    onContextShare,
-    onContextGoToEntry,
-    isSearchActive,
-    downloadPrompt,
-    downloadSummary: downloadPrompt?.summary,
-    onCancelDownloadPrompt,
-    onConfirmDownload,
-    showProgressModal: hasDownloadStatus,
-    downloadState,
-    progressValue,
-    progressMax,
-    onCancelDownload,
-    onDismissDownloadStatus: handleDismissDownloadStatus,
-    contentKey,
-    searchLoading,
-    searchError,
-    searchStatus,
-    searchCount,
-    onRetrySearch,
-    onClearSearch,
-    status,
-    isNotFound,
-    onRetryList,
-    onNavigate,
-    onNavigateRoot: handleNavigateRoot,
-    lastGoodPath,
-    onNavigateLastGoodPath: handleNavigateLastGoodPath,
-    rootLabel,
-    entryCount,
-    sortedEntries,
-    viewMode,
-    onSelect,
-    selectedPath,
-    selectionMode,
-    selectedPaths,
-    onToggleSelection,
-    onOpenContextMenu,
-    contextMenuEntryPath,
-    zoomLevel,
-    panelBodyNode,
-    useWindowScroll
-  }), [
-    canSelectAllFiles,
-    contentKey,
-    contextMenu,
-    contextMenuEntryPath,
-    downloadPrompt,
-    downloadState,
-    entryCount,
-    handleContextSelectAllFiles,
-    handleDismissDownloadStatus,
-    handleNavigateLastGoodPath,
-    handleNavigateRoot,
-    handlePanelBodyRef,
-    hasDownloadStatus,
-    isNotFound,
-    isSearchActive,
-    lastGoodPath,
-    onCancelDownload,
-    onCancelDownloadPrompt,
-    onClearSearch,
-    onCloseContextMenu,
-    onConfirmDownload,
-    onContextCancelSelection,
-    onContextDownload,
-    onContextGoToEntry,
-    onContextSelect,
-    onContextShare,
-    onNavigate,
-    onOpenContextMenu,
-    onRetryList,
-    onRetrySearch,
-    onSelect,
-    onToggleSelection,
-    panelBodyNode,
-    progressMax,
-    progressValue,
-    searchCount,
-    searchError,
-    searchLoading,
-    searchStatus,
-    selectedPath,
-    selectedPaths,
-    selectionMode,
-    sortedEntries,
-    status,
-    useWindowScroll,
-    viewMode,
-    zoomLevel
-  ]);
+  const bodyProps = useMemo(
+    () => ({
+      handlePanelBodyRef,
+      contextMenu,
+      onCloseContextMenu,
+      canSelectAllFiles,
+      onContextSelectAllFiles: handleContextSelectAllFiles,
+      onContextCancelSelection,
+      onContextSelect,
+      onContextDownload,
+      onContextShare,
+      onContextGoToEntry,
+      isSearchActive,
+      downloadPrompt,
+      downloadSummary: downloadPrompt?.summary,
+      onCancelDownloadPrompt,
+      onConfirmDownload,
+      showProgressModal: hasDownloadStatus,
+      downloadState,
+      progressValue,
+      progressMax,
+      onCancelDownload,
+      onDismissDownloadStatus: handleDismissDownloadStatus,
+      contentKey,
+      searchLoading,
+      searchError,
+      searchStatus,
+      searchCount,
+      onRetrySearch,
+      onClearSearch,
+      status,
+      isNotFound,
+      onRetryList,
+      onNavigate,
+      onNavigateRoot: handleNavigateRoot,
+      lastGoodPath,
+      onNavigateLastGoodPath: handleNavigateLastGoodPath,
+      rootLabel,
+      entryCount,
+      sortedEntries,
+      viewMode,
+      onSelect,
+      selectedPath,
+      selectionMode,
+      selectedPaths,
+      onToggleSelection,
+      onOpenContextMenu,
+      contextMenuEntryPath,
+      zoomLevel,
+      panelBodyNode,
+      useWindowScroll,
+    }),
+    [
+      canSelectAllFiles,
+      contentKey,
+      contextMenu,
+      contextMenuEntryPath,
+      downloadPrompt,
+      downloadState,
+      entryCount,
+      handleContextSelectAllFiles,
+      handleDismissDownloadStatus,
+      handleNavigateLastGoodPath,
+      handleNavigateRoot,
+      handlePanelBodyRef,
+      hasDownloadStatus,
+      isNotFound,
+      isSearchActive,
+      lastGoodPath,
+      onCancelDownload,
+      onCancelDownloadPrompt,
+      onClearSearch,
+      onCloseContextMenu,
+      onConfirmDownload,
+      onContextCancelSelection,
+      onContextDownload,
+      onContextGoToEntry,
+      onContextSelect,
+      onContextShare,
+      onNavigate,
+      onOpenContextMenu,
+      onRetryList,
+      onRetrySearch,
+      onSelect,
+      onToggleSelection,
+      panelBodyNode,
+      progressMax,
+      progressValue,
+      searchCount,
+      searchError,
+      searchLoading,
+      searchStatus,
+      selectedPath,
+      selectedPaths,
+      selectionMode,
+      sortedEntries,
+      status,
+      useWindowScroll,
+      viewMode,
+      zoomLevel,
+    ]
+  );
 
-  const selectionBarProps = useMemo(() => (
-    selectionMode
-      ? {
-        selectedCount,
-        canSelectAllFiles,
-        isDownloading,
-        hasSelection,
-        onCancelSelection: handleCancelSelection,
-        onSelectAllFiles: handleSelectAllFiles,
-        onRequestDownload
-      }
-      : null
-  ), [
-    canSelectAllFiles,
-    handleCancelSelection,
-    handleSelectAllFiles,
-    hasSelection,
-    isDownloading,
-    onRequestDownload,
-    selectedCount,
-    selectionMode
-  ]);
+  const selectionBarProps = useMemo(
+    () =>
+      selectionMode
+        ? {
+            selectedCount,
+            canSelectAllFiles,
+            isDownloading,
+            hasSelection,
+            onCancelSelection: handleCancelSelection,
+            onSelectAllFiles: handleSelectAllFiles,
+            onRequestDownload,
+          }
+        : null,
+    [
+      canSelectAllFiles,
+      handleCancelSelection,
+      handleSelectAllFiles,
+      hasSelection,
+      isDownloading,
+      onRequestDownload,
+      selectedCount,
+      selectionMode,
+    ]
+  );
 
   return {
     panelClassName: `panel list-panel${selectionMode ? ' selection-active' : ''}${hasError ? ' has-error' : ''}`,
     headerProps,
     bodyProps,
-    selectionBarProps
+    selectionBarProps,
   };
 };
 

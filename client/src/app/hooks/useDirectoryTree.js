@@ -4,7 +4,7 @@ import { createRequestError, normalizeRequestError } from '../../lib/request.js'
 import { getBasename } from '../../lib/format.js';
 
 const initialTree = {
-  '': { path: '', name: 'Archive', expanded: true, children: null }
+  '': { path: '', name: 'Archive', expanded: true, children: null },
 };
 
 export const useDirectoryTree = () => {
@@ -37,7 +37,7 @@ export const useDirectoryTree = () => {
           path: node.path,
           name: node.name || prevNode?.name || (node.path ? getBasename(node.path) : 'Archive'),
           children,
-          expanded: prevNode?.expanded ?? node.path === ''
+          expanded: prevNode?.expanded ?? node.path === '',
         };
       });
 
@@ -54,8 +54,8 @@ export const useDirectoryTree = () => {
       next[pathValue] = {
         path: pathValue,
         name: nodeName,
-        expanded: expand ? true : next[pathValue]?.expanded ?? false,
-        children
+        expanded: expand ? true : (next[pathValue]?.expanded ?? false),
+        children,
       };
       entries
         .filter((entry) => entry.isDir)
@@ -65,10 +65,10 @@ export const useDirectoryTree = () => {
               path: entry.path,
               name: entry.name,
               expanded: false,
-              children: null
+              children: null,
             };
           }
-      });
+        });
       return next;
     });
   };
@@ -87,7 +87,7 @@ export const useDirectoryTree = () => {
           path: parentPath,
           name: parentPath ? getBasename(parentPath) : resolvedRootLabel,
           expanded: true,
-          children: []
+          children: [],
         };
         const children = Array.isArray(parentNode.children) ? [...parentNode.children] : [];
         if (!children.includes(current)) {
@@ -98,7 +98,7 @@ export const useDirectoryTree = () => {
           ...(next[current] || {}),
           path: current,
           name: segment,
-          expanded: true
+          expanded: true,
         };
         parentPath = current;
       });
@@ -111,8 +111,8 @@ export const useDirectoryTree = () => {
       ...prev,
       [pathValue]: {
         ...prev[pathValue],
-        expanded: !prev[pathValue]?.expanded
-      }
+        expanded: !prev[pathValue]?.expanded,
+      },
     }));
   };
 
@@ -153,7 +153,7 @@ export const useDirectoryTree = () => {
       setTreeStatus({
         loading: false,
         error: normalized.message,
-        retryable: Boolean(normalized.retryable)
+        retryable: Boolean(normalized.retryable),
       });
     } finally {
       treePrefetchingRef.current = false;
@@ -177,6 +177,6 @@ export const useDirectoryTree = () => {
     expandAncestors,
     toggleNode,
     collapseAll,
-    retryTree: loadTree
+    retryTree: loadTree,
   };
 };

@@ -11,16 +11,13 @@ export const useLightboxState = ({
   setSelected,
   onNavigate,
   lightboxOpen: externalOpen,
-  setLightboxOpen: externalSetOpen
+  setLightboxOpen: externalSetOpen,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const lightboxOpen = externalOpen ?? internalOpen;
   const setLightboxOpen = externalSetOpen ?? setInternalOpen;
 
-  const lightboxEntries = useMemo(
-    () => entries.filter((entry) => !entry.isDir),
-    [entries]
-  );
+  const lightboxEntries = useMemo(() => entries.filter((entry) => !entry.isDir), [entries]);
   const selectedEntry = useMemo(() => {
     if (!selected) return null;
     return entries.some((entry) => entry.path === selected.path) ? selected : null;
@@ -30,32 +27,38 @@ export const useLightboxState = ({
     return lightboxEntries.findIndex((entry) => entry.path === selectedEntry.path);
   }, [lightboxEntries, selectedEntry]);
 
-  const handleViewMedia = useCallback((entry) => {
-    if (!isViewableEntry(entry)) return;
-    if (!selected || selected.path !== entry.path) {
-      setSelected(entry);
-    }
-    setLightboxOpen(true);
-    if (!isSearchMode) {
-      setUrlState({ path: currentPath, preview: entry.name }, { replace: true });
-    }
-  }, [currentPath, isSearchMode, selected, setLightboxOpen, setSelected]);
+  const handleViewMedia = useCallback(
+    (entry) => {
+      if (!isViewableEntry(entry)) return;
+      if (!selected || selected.path !== entry.path) {
+        setSelected(entry);
+      }
+      setLightboxOpen(true);
+      if (!isSearchMode) {
+        setUrlState({ path: currentPath, preview: entry.name }, { replace: true });
+      }
+    },
+    [currentPath, isSearchMode, selected, setLightboxOpen, setSelected]
+  );
 
-  const handleOpen = useCallback((entry) => {
-    if (entry.isDir) {
-      void onNavigate(entry.path);
-      return;
-    }
-    if (isViewableEntry(entry)) {
-      handleViewMedia(entry);
-      return;
-    }
-    setSelected(entry);
-    setLightboxOpen(true);
-    if (!isSearchMode) {
-      setUrlState({ path: currentPath, preview: entry.name }, { replace: true });
-    }
-  }, [currentPath, handleViewMedia, isSearchMode, onNavigate, setLightboxOpen, setSelected]);
+  const handleOpen = useCallback(
+    (entry) => {
+      if (entry.isDir) {
+        void onNavigate(entry.path);
+        return;
+      }
+      if (isViewableEntry(entry)) {
+        handleViewMedia(entry);
+        return;
+      }
+      setSelected(entry);
+      setLightboxOpen(true);
+      if (!isSearchMode) {
+        setUrlState({ path: currentPath, preview: entry.name }, { replace: true });
+      }
+    },
+    [currentPath, handleViewMedia, isSearchMode, onNavigate, setLightboxOpen, setSelected]
+  );
 
   const handleClose = useCallback(() => {
     setLightboxOpen(false);
@@ -64,16 +67,19 @@ export const useLightboxState = ({
     }
   }, [currentPath, isSearchMode, setLightboxOpen]);
 
-  const openLightboxByIndex = useCallback((index) => {
-    if (index < 0 || index >= lightboxEntries.length) return;
-    const entry = lightboxEntries[index];
-    if (!entry) return;
-    setSelected(entry);
-    setLightboxOpen(true);
-    if (!isSearchMode) {
-      setUrlState({ path: currentPath, preview: entry.name }, { replace: true });
-    }
-  }, [currentPath, isSearchMode, lightboxEntries, setLightboxOpen, setSelected]);
+  const openLightboxByIndex = useCallback(
+    (index) => {
+      if (index < 0 || index >= lightboxEntries.length) return;
+      const entry = lightboxEntries[index];
+      if (!entry) return;
+      setSelected(entry);
+      setLightboxOpen(true);
+      if (!isSearchMode) {
+        setUrlState({ path: currentPath, preview: entry.name }, { replace: true });
+      }
+    },
+    [currentPath, isSearchMode, lightboxEntries, setLightboxOpen, setSelected]
+  );
 
   const handlePrev = useCallback(() => {
     openLightboxByIndex(activeLightboxIndex - 1);
@@ -83,15 +89,18 @@ export const useLightboxState = ({
     openLightboxByIndex(activeLightboxIndex + 1);
   }, [activeLightboxIndex, openLightboxByIndex]);
 
-  const handleNavigateFromLightbox = useCallback((entry) => {
-    if (!entry?.path) {
+  const handleNavigateFromLightbox = useCallback(
+    (entry) => {
+      if (!entry?.path) {
+        setLightboxOpen(false);
+        return Promise.resolve();
+      }
+      const targetDir = getDirname(entry.path);
       setLightboxOpen(false);
-      return Promise.resolve();
-    }
-    const targetDir = getDirname(entry.path);
-    setLightboxOpen(false);
-    return onNavigate(targetDir, { selectPath: entry.path, openLightbox: false });
-  }, [onNavigate, setLightboxOpen]);
+      return onNavigate(targetDir, { selectPath: entry.path, openLightbox: false });
+    },
+    [onNavigate, setLightboxOpen]
+  );
 
   return {
     lightboxOpen,

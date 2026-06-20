@@ -59,7 +59,7 @@ const useAppPreferences = () => {
     theme,
     setTheme,
     warnOnLargeFiles,
-    setWarnOnLargeFiles
+    setWarnOnLargeFiles,
   };
 };
 

@@ -31,7 +31,6 @@
   border-left: 1px solid var(--divider);
 }
 
-
 .layout.zoom-sm {
   --grid-min: 100px;
   --folder-thumb: 36px;

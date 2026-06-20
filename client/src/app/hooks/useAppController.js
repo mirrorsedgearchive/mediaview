@@ -16,17 +16,8 @@ import { useAppPanelsProps } from './useAppPanelsProps.js';
 import { useAppOverlaysProps } from './useAppOverlaysProps.js';
 
 const useAppController = () => {
-  const {
-    directory,
-    currentPath,
-    lastGoodPath,
-    status,
-    selection,
-    tree,
-    search,
-    view,
-    actions
-  } = useDirectoryData();
+  const { directory, currentPath, lastGoodPath, status, selection, tree, search, view, actions } =
+    useDirectoryData();
   const { selected, setSelected, pendingSelection } = selection;
   const {
     data: treeData,
@@ -34,7 +25,7 @@ const useAppController = () => {
     handleToggle,
     collapseAll,
     expandToCurrentPath,
-    retryTree
+    retryTree,
   } = tree;
   const {
     query: searchQuery,
@@ -42,14 +33,9 @@ const useAppController = () => {
     clear: clearSearch,
     results: searchResults,
     status: searchStatus,
-    retry: retrySearch
+    retry: retrySearch,
   } = search;
-  const {
-    mode: viewMode,
-    setMode: setViewMode,
-    zoom: zoomLevel,
-    setZoom: setZoomLevel
-  } = view;
+  const { mode: viewMode, setMode: setViewMode, zoom: zoomLevel, setZoom: setZoomLevel } = view;
   const { loadDirectory } = actions;
   const {
     selectionMode,
@@ -63,7 +49,7 @@ const useAppController = () => {
     downloadSelection,
     cancelDownload,
     resetDownloadState,
-    downloadState
+    downloadState,
   } = useBatchDownload();
   const [lastBrowsePath, setLastBrowsePath] = useState('');
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -79,11 +65,10 @@ const useAppController = () => {
   const baseTitle = "The Mirror's Edge Archive";
   const currentPathName = currentPath ? getBasename(currentPath) : 'Archive';
   const pendingSelectionPath = pendingSelection || '';
-  const activeEntries = useMemo(() => (
-    searchQuery
-      ? searchResults
-      : (directory?.entries || [])
-  ), [directory?.entries, searchQuery, searchResults]);
+  const activeEntries = useMemo(
+    () => (searchQuery ? searchResults : directory?.entries || []),
+    [directory?.entries, searchQuery, searchResults]
+  );
   const isTreeHidden = useMediaQuery('(max-width: 1100px)');
 
   useEffect(() => {
@@ -118,22 +103,17 @@ const useAppController = () => {
   }, []);
 
   const navigateTo = useCallback(async (pathValue, options = {}) => {
-    const {
-      selectPath = '',
-      updateUrl = true,
-      replaceUrl = false,
-      openLightbox = true
-    } = options;
+    const { selectPath = '', updateUrl = true, replaceUrl = false, openLightbox = true } = options;
     const { selection: nextSelection, shouldLightbox } = await loadDirectoryRef.current(pathValue, {
       selectPath,
-      openLightbox
+      openLightbox,
     });
     setLightboxOpen(shouldLightbox);
     if (updateUrl) {
       setUrlState(
         {
           path: pathValue,
-          preview: shouldLightbox && nextSelection ? nextSelection.name : ''
+          preview: shouldLightbox && nextSelection ? nextSelection.name : '',
         },
         { replace: replaceUrl }
       );
@@ -146,7 +126,7 @@ const useAppController = () => {
     handleSearchFocusChange,
     hasSearchState,
     handleSearchSubmit,
-    handleCloseSearch
+    handleCloseSearch,
   } = useAppRouting({
     baseTitle,
     currentPath,
@@ -160,15 +140,18 @@ const useAppController = () => {
     navigateTo,
     setLightboxOpen,
     lastBrowsePath,
-    setLastBrowsePath
+    setLastBrowsePath,
   });
 
-  const handleNavigate = useCallback((pathValue, options = {}) => {
-    if (hasSearchState()) {
-      clearSearchState();
-    }
-    return navigateTo(pathValue, options);
-  }, [clearSearchState, hasSearchState, navigateTo]);
+  const handleNavigate = useCallback(
+    (pathValue, options = {}) => {
+      if (hasSearchState()) {
+        clearSearchState();
+      }
+      return navigateTo(pathValue, options);
+    },
+    [clearSearchState, hasSearchState, navigateTo]
+  );
 
   const handleNavigateRoot = useCallback(() => {
     if (hasSearchState()) {
@@ -185,7 +168,7 @@ const useAppController = () => {
     handleClose,
     handlePrev,
     handleNext,
-    handleNavigateFromLightbox
+    handleNavigateFromLightbox,
   } = useLightboxState({
     entries: activeEntries,
     currentPath,
@@ -194,7 +177,7 @@ const useAppController = () => {
     setSelected,
     onNavigate: handleNavigate,
     lightboxOpen,
-    setLightboxOpen
+    setLightboxOpen,
   });
 
   const {
@@ -202,7 +185,7 @@ const useAppController = () => {
     setDownloadPrompt,
     handleRequestDownload,
     handleConfirmDownload,
-    handleCancelDownloadPrompt
+    handleCancelDownloadPrompt,
   } = useDownloadPrompt({ discoverSelection, downloadSelection });
 
   const handleDismissSnackbar = useCallback(() => {
@@ -213,21 +196,24 @@ const useAppController = () => {
     setSnackbar({ open: true, message });
   }, []);
 
-  const handleShareEntry = useCallback(async (entry) => {
-    if (!entry?.path) return;
-    const previewUrl = buildPreviewUrlForEntry(entry);
-    const nativeShareResult = await tryNativeShare({
-      title: entry.name || 'Shared file',
-      url: previewUrl
-    });
-    if (nativeShareResult.shared || nativeShareResult.cancelled) return;
-    try {
-      await copyToClipboard(previewUrl);
-      showSnackbar('Preview link copied to clipboard.');
-    } catch {
-      showSnackbar('Could not copy link to clipboard.');
-    }
-  }, [showSnackbar]);
+  const handleShareEntry = useCallback(
+    async (entry) => {
+      if (!entry?.path) return;
+      const previewUrl = buildPreviewUrlForEntry(entry);
+      const nativeShareResult = await tryNativeShare({
+        title: entry.name || 'Shared file',
+        url: previewUrl,
+      });
+      if (nativeShareResult.shared || nativeShareResult.cancelled) return;
+      try {
+        await copyToClipboard(previewUrl);
+        showSnackbar('Preview link copied to clipboard.');
+      } catch {
+        showSnackbar('Could not copy link to clipboard.');
+      }
+    },
+    [showSnackbar]
+  );
 
   const {
     contextMenu,
@@ -237,14 +223,14 @@ const useAppController = () => {
     handleContextDownload,
     handleContextShare,
     handleContextCancelSelection,
-    handleContextGoToEntry
+    handleContextGoToEntry,
   } = useContextMenu({
     setSelectionMode,
     setSelectionEntries,
     discoverSelection,
     setDownloadPrompt,
     onNavigateToEntry: handleNavigateFromLightbox,
-    onShareEntry: handleShareEntry
+    onShareEntry: handleShareEntry,
   });
 
   useEffect(() => {
@@ -253,13 +239,16 @@ const useAppController = () => {
     }
   }, [selectionMode, setSelected]);
 
-  const handleSelectAllFiles = useCallback((entries) => {
-    const filesInView = Array.isArray(entries)
-      ? entries.filter((entry) => entry?.path && !entry.isDir)
-      : [];
-    setSelectionMode(true);
-    addSelectionEntries(filesInView);
-  }, [addSelectionEntries, setSelectionMode]);
+  const handleSelectAllFiles = useCallback(
+    (entries) => {
+      const filesInView = Array.isArray(entries)
+        ? entries.filter((entry) => entry?.path && !entry.isDir)
+        : [];
+      setSelectionMode(true);
+      addSelectionEntries(filesInView);
+    },
+    [addSelectionEntries, setSelectionMode]
+  );
 
   const handleRetryList = useCallback(() => {
     void loadDirectory(currentPath, { force: true });
@@ -270,11 +259,10 @@ const useAppController = () => {
     void loadDirectory(currentPath, { force: true });
   }, [currentPath, loadDirectory, retryTree]);
 
-  const showConnectionLightbox = (
-    ((status.error && status.retryable) || (treeStatus.error && treeStatus.retryable))
-    && !status.loading
-    && !treeStatus.loading
-  );
+  const showConnectionLightbox =
+    ((status.error && status.retryable) || (treeStatus.error && treeStatus.retryable)) &&
+    !status.loading &&
+    !treeStatus.loading;
 
   const { viewValue, providerValues } = useAppProviderValues({
     directory,
@@ -318,7 +306,7 @@ const useAppController = () => {
     viewMode,
     setViewMode,
     zoomLevel,
-    setZoomLevel
+    setZoomLevel,
   });
 
   const appChromeProps = useAppChromeProps({
@@ -337,7 +325,7 @@ const useAppController = () => {
     status,
     lastGoodPath,
     currentPath,
-    handleNavigate
+    handleNavigate,
   });
 
   const panelsProps = useAppPanelsProps({
@@ -351,7 +339,7 @@ const useAppController = () => {
     handleNavigate,
     treeStatus,
     retryTree,
-    handleFooterOverlayClick
+    handleFooterOverlayClick,
   });
 
   const overlaysProps = useAppOverlaysProps({
@@ -374,7 +362,7 @@ const useAppController = () => {
     theme,
     setTheme,
     snackbar,
-    handleDismissSnackbar
+    handleDismissSnackbar,
   });
 
   return {
@@ -384,7 +372,7 @@ const useAppController = () => {
     panelsProps,
     overlaysProps,
     isTreeHidden,
-    footerOpen
+    footerOpen,
   };
 };
 

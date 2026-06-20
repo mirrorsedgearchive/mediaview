@@ -6,7 +6,7 @@ const createSearchStatus = (overrides = {}) => ({
   error: null,
   truncated: false,
   retryable: false,
-  ...overrides
+  ...overrides,
 });
 
 const useArchiveSearch = () => {
@@ -46,17 +46,21 @@ const useArchiveSearch = () => {
       .then((data) => {
         if (!isActive) return;
         setSearchResults(Array.isArray(data.results) ? data.results : []);
-        setSearchStatus(createSearchStatus({
-          truncated: Boolean(data.truncated)
-        }));
+        setSearchStatus(
+          createSearchStatus({
+            truncated: Boolean(data.truncated),
+          })
+        );
       })
       .catch((error) => {
         if (!isActive) return;
         setSearchResults([]);
-        setSearchStatus(createSearchStatus({
-          error: error.message,
-          retryable: Boolean(error.retryable)
-        }));
+        setSearchStatus(
+          createSearchStatus({
+            error: error.message,
+            retryable: Boolean(error.retryable),
+          })
+        );
       });
 
     return () => {
@@ -70,7 +74,7 @@ const useArchiveSearch = () => {
     clear: clearSearch,
     results: searchResults,
     status: searchStatus,
-    retry: retrySearch
+    retry: retrySearch,
   };
 };
 

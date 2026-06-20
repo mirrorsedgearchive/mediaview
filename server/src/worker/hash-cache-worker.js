@@ -37,8 +37,7 @@ const cacheRelativeDir =
     ? path.posix.dirname(cacheRelativePath)
     : null;
 
-const isExcludedPath = (relativePath) =>
-  isExcludedPathWithPatterns(relativePath, excludedPatterns);
+const isExcludedPath = (relativePath) => isExcludedPathWithPatterns(relativePath, excludedPatterns);
 
 const hashFile = async (absolutePath) => {
   const handle = await fsPromises.open(absolutePath, 'r');

@@ -4,7 +4,7 @@ const ViewContext = createContext({
   viewMode: 'grid',
   setViewMode: () => {},
   zoomLevel: 'm',
-  setZoomLevel: () => {}
+  setZoomLevel: () => {},
 });
 
 const useViewContext = () => useContext(ViewContext);

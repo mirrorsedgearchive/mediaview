@@ -3,13 +3,11 @@ const LightboxLargeFileWarning = ({
   disableWarningsChecked,
   onToggleDisableWarnings,
   onLoadFile,
-  onClose
+  onClose,
 }) => (
   <div className="lightbox-warning">
     <div className="lightbox-warning-title">Large file</div>
-    <div className="lightbox-warning-copy">
-      This file is {sizeLabel}. Loading may take a while.
-    </div>
+    <div className="lightbox-warning-copy">This file is {sizeLabel}. Loading may take a while.</div>
     <label className="lightbox-warning-checkbox">
       <input
         type="checkbox"
@@ -20,18 +18,10 @@ const LightboxLargeFileWarning = ({
       <span>Don&apos;t show this again for large files</span>
     </label>
     <div className="lightbox-warning-actions">
-      <button
-        type="button"
-        className="lightbox-warning-button"
-        onClick={onLoadFile}
-      >
+      <button type="button" className="lightbox-warning-button" onClick={onLoadFile}>
         Load file
       </button>
-      <button
-        type="button"
-        className="lightbox-warning-button is-secondary"
-        onClick={onClose}
-      >
+      <button type="button" className="lightbox-warning-button is-secondary" onClick={onClose}>
         Close
       </button>
     </div>

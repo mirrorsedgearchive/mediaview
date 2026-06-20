@@ -27,7 +27,7 @@ const useAppRouting = ({
   navigateTo,
   setLightboxOpen,
   lastBrowsePath,
-  setLastBrowsePath
+  setLastBrowsePath,
 }) => {
   const searchStateRef = useRef({ searchQuery: '', searchInput: '' });
 
@@ -43,7 +43,9 @@ const useAppRouting = ({
     if (typeof document === 'undefined') return;
     const pageTitle = searchQuery
       ? `${baseTitle} - Search for "${searchQuery}"`
-      : (!currentPath ? baseTitle : `${baseTitle} - ${currentPathName}`);
+      : !currentPath
+        ? baseTitle
+        : `${baseTitle} - ${currentPathName}`;
     const description = baseTitle;
     const origin = window.location.origin;
     const pathname = window.location.pathname;
@@ -60,52 +62,70 @@ const useAppRouting = ({
     setMetaTagContent('name', 'twitter:image', image);
   }, [baseTitle, currentPath, currentPathName, searchQuery]);
 
-  const clearSearchState = useCallback((options = {}) => {
-    const { focus = false } = options;
-    setSearchInputValue('');
-    setSearchFocused(focus);
-    searchStateRef.current.searchInput = '';
-    clearSearch();
-  }, [clearSearch, setSearchFocused, setSearchInputValue]);
+  const clearSearchState = useCallback(
+    (options = {}) => {
+      const { focus = false } = options;
+      setSearchInputValue('');
+      setSearchFocused(focus);
+      searchStateRef.current.searchInput = '';
+      clearSearch();
+    },
+    [clearSearch, setSearchFocused, setSearchInputValue]
+  );
 
-  const handleSearchValueChange = useCallback((value) => {
-    setSearchInputValue(value);
-    searchStateRef.current.searchInput = value;
-  }, [setSearchInputValue]);
+  const handleSearchValueChange = useCallback(
+    (value) => {
+      setSearchInputValue(value);
+      searchStateRef.current.searchInput = value;
+    },
+    [setSearchInputValue]
+  );
 
-  const handleSearchFocusChange = useCallback((focused) => {
-    setSearchFocused(focused);
-  }, [setSearchFocused]);
+  const handleSearchFocusChange = useCallback(
+    (focused) => {
+      setSearchFocused(focused);
+    },
+    [setSearchFocused]
+  );
 
-  const setSearchInput = useCallback((value) => {
-    setSearchInputValue(value);
-    searchStateRef.current.searchInput = value;
-  }, [setSearchInputValue]);
+  const setSearchInput = useCallback(
+    (value) => {
+      setSearchInputValue(value);
+      searchStateRef.current.searchInput = value;
+    },
+    [setSearchInputValue]
+  );
 
   const hasSearchState = useCallback(
     () => Boolean(searchQuery || searchInputValue.trim()),
     [searchInputValue, searchQuery]
   );
 
-  const applySearch = useCallback((value) => {
-    const trimmed = value.trim();
-    if (trimmed) {
-      const fallbackPath = currentPath ?? lastBrowsePath ?? '';
-      setLastBrowsePath(fallbackPath || '');
-    }
-    submitSearch(trimmed);
-    return trimmed;
-  }, [currentPath, lastBrowsePath, setLastBrowsePath, submitSearch]);
+  const applySearch = useCallback(
+    (value) => {
+      const trimmed = value.trim();
+      if (trimmed) {
+        const fallbackPath = currentPath ?? lastBrowsePath ?? '';
+        setLastBrowsePath(fallbackPath || '');
+      }
+      submitSearch(trimmed);
+      return trimmed;
+    },
+    [currentPath, lastBrowsePath, setLastBrowsePath, submitSearch]
+  );
 
-  const handleSearchSubmit = useCallback((value) => {
-    const trimmed = applySearch(value);
-    setSearchFocused(Boolean(trimmed));
-    if (trimmed) {
-      setUrlState({ search: trimmed });
-    } else {
-      setUrlState({ path: currentPath, preview: '' });
-    }
-  }, [applySearch, currentPath, setSearchFocused]);
+  const handleSearchSubmit = useCallback(
+    (value) => {
+      const trimmed = applySearch(value);
+      setSearchFocused(Boolean(trimmed));
+      if (trimmed) {
+        setUrlState({ search: trimmed });
+      } else {
+        setUrlState({ path: currentPath, preview: '' });
+      }
+    },
+    [applySearch, currentPath, setSearchFocused]
+  );
 
   const handleCloseSearch = useCallback(() => {
     const returnPath = lastBrowsePath ?? '';
@@ -119,7 +139,7 @@ const useAppRouting = ({
     applySearch,
     navigateTo,
     setLightboxOpen,
-    searchStateRef
+    searchStateRef,
   });
 
   return {
@@ -129,7 +149,7 @@ const useAppRouting = ({
     handleSearchFocusChange,
     hasSearchState,
     handleSearchSubmit,
-    handleCloseSearch
+    handleCloseSearch,
   };
 };
 

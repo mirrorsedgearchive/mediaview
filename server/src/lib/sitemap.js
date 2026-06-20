@@ -24,12 +24,7 @@ const buildSitemapXml = (urls) => {
   return `${XML_HEADER}${URLSET_OPEN}${body}${URLSET_CLOSE}`;
 };
 
-export const writeSitemap = async ({
-  directories,
-  targetPath,
-  baseUrl,
-  gzip = false
-}) => {
+export const writeSitemap = async ({ directories, targetPath, baseUrl, gzip = false }) => {
   const normalizedBase = normalizeBaseUrl(baseUrl);
   const urls = directories.map((pathValue) => {
     const encodedPath = encodePath(pathValue);

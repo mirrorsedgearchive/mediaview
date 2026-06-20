@@ -7,7 +7,7 @@ const SettingsModal = ({
   theme,
   onThemeChange,
   warnOnLargeFiles,
-  onWarnOnLargeFilesChange
+  onWarnOnLargeFilesChange,
 }) => {
   const historyRef = useRef({ hasEntry: false, closingFromPop: false });
 
@@ -57,14 +57,24 @@ const SettingsModal = ({
 
   return (
     <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
-      <button type="button" className="settings-backdrop" onClick={onClose} aria-label="Close settings" />
+      <button
+        type="button"
+        className="settings-backdrop"
+        onClick={onClose}
+        aria-label="Close settings"
+      />
       <div className="settings-card" role="document">
         <div className="settings-header">
           <div>
             <div className="settings-title">Settings</div>
             <div className="settings-subtitle">Preferences for this device</div>
           </div>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close settings">
+          <button
+            type="button"
+            className="settings-close"
+            onClick={onClose}
+            aria-label="Close settings"
+          >
             <IconClose />
           </button>
         </div>

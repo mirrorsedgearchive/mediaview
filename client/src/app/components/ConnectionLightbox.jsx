@@ -10,7 +10,8 @@ const ConnectionLightbox = ({ open, onRetry }) => {
         </div>
         <div className="connection-lightbox-title">Connection error</div>
         <div className="connection-lightbox-copy">
-          We couldn&apos;t reach The Mirror&apos;s Edge Archive services. Check your connection and try again.
+          We couldn&apos;t reach The Mirror&apos;s Edge Archive services. Check your connection and
+          try again.
         </div>
         <div className="connection-lightbox-actions">
           <button type="button" className="connection-lightbox-button" onClick={onRetry}>

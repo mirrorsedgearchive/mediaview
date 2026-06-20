@@ -33,7 +33,7 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
   const applyListing = (pathValue, data, options = {}) => {
     cacheRef.current.set(pathValue, data);
     updateTreeWithEntries(pathValue, data.entries, {
-      expand: options.expand ?? true
+      expand: options.expand ?? true,
     });
     if (data.children) {
       Object.entries(data.children).forEach(([childPath, childEntries]) => {
@@ -42,14 +42,14 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
         const childData = {
           current: {
             name: childName,
-            path: childPath
+            path: childPath,
           },
           stats: buildStats(childEntries),
-          entries: childEntries
+          entries: childEntries,
         };
         cacheRef.current.set(childPath, childData);
         updateTreeWithEntries(childPath, childEntries, {
-          expand: false
+          expand: false,
         });
       });
     }
@@ -110,7 +110,7 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
       const cached = getCachedListing(chainPath);
       if (!cached) return;
       updateTreeWithEntries(chainPath, cached.entries, {
-        expand: true
+        expand: true,
       });
     });
 
@@ -131,7 +131,7 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
         const cachedNext = getCachedListing(nextPath);
         if (cachedNext) {
           updateTreeWithEntries(nextPath, cachedNext.entries, {
-            expand: true
+            expand: true,
           });
         }
         index += 2;
@@ -177,6 +177,6 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
     getCachedListing,
     getLastResolvablePath,
     hydratePathChain,
-    resolveLastGoodPath
+    resolveLastGoodPath,
   };
 };

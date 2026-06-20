@@ -16,7 +16,7 @@ export const formatDate = (value) => {
   const date = new Date(value);
   return new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
-    timeStyle: 'short'
+    timeStyle: 'short',
   }).format(date);
 };
 

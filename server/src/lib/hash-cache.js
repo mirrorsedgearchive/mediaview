@@ -263,9 +263,7 @@ const flushThumbQueue = () => {
 export const setHashEntry = (relativePath, entry, options = {}) => {
   if (!relativePath || !entry?.hash) return;
   const existing = HASH_CACHE.get(relativePath);
-  const thumbErrCount = existing?.hash === entry.hash
-    ? (existing?.thumbErrCount ?? 0)
-    : 0;
+  const thumbErrCount = existing?.hash === entry.hash ? (existing?.thumbErrCount ?? 0) : 0;
   const payload = {
     hash: entry.hash,
     mtimeMs: entry.mtimeMs,
@@ -354,8 +352,7 @@ export const getHashEntries = () => {
 
 export const hasHashEntry = (relativePath) => HASH_CACHE.has(relativePath);
 
-export const getThumbErrCount = (relativePath) =>
-  HASH_CACHE.get(relativePath)?.thumbErrCount ?? 0;
+export const getThumbErrCount = (relativePath) => HASH_CACHE.get(relativePath)?.thumbErrCount ?? 0;
 
 export const incrementThumbErrCount = (relativePath) => {
   if (!relativePath) return 0;
@@ -569,11 +566,9 @@ export const getCacheEpoch = () => cacheEpoch;
 const writeSitemapIfChanged = async () => {
   if (!shouldWriteSitemap()) return;
   const directories = [...ENTRY_INDEX.entries()]
-    .filter(([pathValue, entry]) => (
-      entry?.isDir &&
-      !isHiddenPath(pathValue) &&
-      !isExcludedPath(pathValue)
-    ))
+    .filter(
+      ([pathValue, entry]) => entry?.isDir && !isHiddenPath(pathValue) && !isExcludedPath(pathValue)
+    )
     .map(([pathValue]) => pathValue);
   const nextHash = directories.join('\n');
   if (nextHash === sitemapHash) return;
@@ -590,7 +585,9 @@ const DEFAULT_SEARCH_LIMIT = 100;
 const SEARCH_CHUNK_SIZE = 500;
 
 export const searchHashCache = async (query) => {
-  const normalized = String(query || '').trim().toLowerCase();
+  const normalized = String(query || '')
+    .trim()
+    .toLowerCase();
   if (!normalized) {
     return { results: [], truncated: false };
   }

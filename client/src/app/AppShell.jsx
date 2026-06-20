@@ -7,7 +7,7 @@ import {
   Lightbox,
   SettingsModal,
   Snackbar,
-  TreePanel
+  TreePanel,
 } from './components/index.js';
 import {
   ContextMenuContext,
@@ -20,7 +20,7 @@ import {
   SelectionActionsContext,
   SelectionStateContext,
   ViewContext,
-  useViewContext
+  useViewContext,
 } from './contexts/index.js';
 
 const AppChrome = ({
@@ -38,7 +38,7 @@ const AppChrome = ({
   breadcrumbsPath,
   onNavigate,
   isPathStale,
-  isSearchFocused
+  isSearchFocused,
 }) => (
   <>
     <AppHeader
@@ -74,7 +74,7 @@ const TreePanelContainer = ({
   onExpandCurrent,
   onNavigate,
   treeStatus,
-  onRetryTree
+  onRetryTree,
 }) => (
   <TreePanel
     tree={tree}
@@ -100,7 +100,7 @@ const AppPanels = ({
   onNavigate,
   treeStatus,
   onRetryTree,
-  onFooterOverlayClick
+  onFooterOverlayClick,
 }) => {
   const { zoomLevel } = useViewContext();
   return (
@@ -117,11 +117,7 @@ const AppPanels = ({
       />
 
       <DirectoryPanel />
-      <div
-        className="footer-scroll-guard"
-        aria-hidden="true"
-        onClick={onFooterOverlayClick}
-      />
+      <div className="footer-scroll-guard" aria-hidden="true" onClick={onFooterOverlayClick} />
     </main>
   );
 };
@@ -145,7 +141,7 @@ const AppProviders = ({
   contextMenuValue,
   searchStateValue,
   searchActionsValue,
-  children
+  children,
 }) => (
   <DirectoryDataContext.Provider value={directoryDataValue}>
     <DirectoryActionsContext.Provider value={directoryActionsValue}>
@@ -172,18 +168,12 @@ const AppOverlays = ({
   connectionLightboxProps,
   lightboxProps,
   settingsModalProps,
-  snackbarProps
+  snackbarProps,
 }) => (
   <>
-    {connectionLightboxProps?.open && (
-      <ConnectionLightbox {...connectionLightboxProps} />
-    )}
-    {lightboxProps?.open && (
-      <Lightbox {...lightboxProps} />
-    )}
-    {settingsModalProps?.open && (
-      <SettingsModal {...settingsModalProps} />
-    )}
+    {connectionLightboxProps?.open && <ConnectionLightbox {...connectionLightboxProps} />}
+    {lightboxProps?.open && <Lightbox {...lightboxProps} />}
+    {settingsModalProps?.open && <SettingsModal {...settingsModalProps} />}
     <Snackbar {...snackbarProps} />
   </>
 );
@@ -195,7 +185,7 @@ const AppShell = ({
   panelsProps,
   overlaysProps,
   isTreeHidden,
-  footerOpen
+  footerOpen,
 }) => (
   <ViewContext.Provider value={viewValue}>
     <div className="page">

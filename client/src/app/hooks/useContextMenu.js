@@ -6,14 +6,14 @@ const useContextMenu = ({
   discoverSelection,
   setDownloadPrompt,
   onNavigateToEntry,
-  onShareEntry
+  onShareEntry,
 }) => {
   const [contextMenu, setContextMenu] = useState({
     open: false,
     x: 0,
     y: 0,
     entry: null,
-    type: 'entry'
+    type: 'entry',
   });
 
   const closeContextMenu = useCallback(() => {
@@ -33,7 +33,7 @@ const useContextMenu = ({
       x,
       y,
       entry: menuType === 'selection' ? null : entry,
-      type: menuType
+      type: menuType,
     });
   }, []);
 
@@ -59,7 +59,7 @@ const useContextMenu = ({
     discoverSelection,
     setDownloadPrompt,
     setSelectionEntries,
-    setSelectionMode
+    setSelectionMode,
   ]);
 
   const handleContextCancelSelection = useCallback(() => {
@@ -100,7 +100,7 @@ const useContextMenu = ({
     handleContextDownload,
     handleContextShare,
     handleContextCancelSelection,
-    handleContextGoToEntry
+    handleContextGoToEntry,
   };
 };
 
