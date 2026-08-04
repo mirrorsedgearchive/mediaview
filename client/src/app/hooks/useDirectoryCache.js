@@ -46,8 +46,12 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
           },
           stats: buildStats(childEntries),
           entries: childEntries,
+          isPartial: true,
         };
-        cacheRef.current.set(childPath, childData);
+        const existing = getCachedListing(childPath);
+        if (!existing || existing.isPartial) {
+          cacheRef.current.set(childPath, childData);
+        }
         updateTreeWithEntries(childPath, childEntries, {
           expand: false,
         });
