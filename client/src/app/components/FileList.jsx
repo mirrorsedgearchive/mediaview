@@ -1,5 +1,6 @@
 import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Virtuoso, VirtuosoGrid } from 'react-virtuoso';
+import { useGridThumbnailState } from '../hooks/useGridThumbnailState.js';
 import { buildThumbUrl } from '../../lib/api.js';
 import { formatSize } from '../../lib/format.js';
 import { IconCheckCircleFill, iconForEntry } from './index.js';
@@ -31,7 +32,14 @@ const buildThumbSrcSet = (pathValue) =>
 const isPreviewableEntry = (entry) => entry?.type === 'image' || entry?.type === 'video';
 
 const ThumbStack = memo(
-  ({ entry, sizes, wrapperClassName, imgClassName, iconClassName, iconTag: IconTag }) => {
+  ({
+    entry,
+    sizes,
+    wrapperClassName,
+    imgClassName,
+    iconClassName,
+    iconTag: IconTag,
+  }) => {
     const [hasError, setHasError] = useState(false);
 
     return (
@@ -86,7 +94,7 @@ ListScroller.displayName = 'ListScroller';
 ListContainer.displayName = 'ListContainer';
 ThumbStack.displayName = 'ThumbStack';
 
-const FolderThumbStack = memo(({ entry, previewEntries, sizes }) => {
+const FolderThumbStack = memo(({ entry, previewEntries, thumbnailSize = 'sm' }) => {
   const [failedPaths, setFailedPaths] = useState(new Set());
   const availablePreviews = previewEntries.filter((preview) => !failedPaths.has(preview.path));
 
@@ -99,10 +107,8 @@ const FolderThumbStack = memo(({ entry, previewEntries, sizes }) => {
       {availablePreviews.map((preview) => (
         <div className="folder-preview" key={preview.path}>
           <img
-            src={buildThumbUrl(preview.path, 'jpg')}
-            srcSet={buildThumbSrcSet(preview.path)}
+            src={buildThumbUrl(preview.path, thumbnailSize)}
             alt=""
-            sizes={sizes}
             loading="lazy"
             onError={() => {
               setFailedPaths((previous) => new Set(previous).add(preview.path));
@@ -119,14 +125,16 @@ FolderThumbStack.displayName = 'FolderThumbStack';
 const splitEntries = (entries) => {
   const folders = [];
   const files = [];
+  let hasPreviewableFiles = false;
   entries.forEach((entry) => {
     if (entry.isDir) {
       folders.push(entry);
     } else {
       files.push(entry);
+      hasPreviewableFiles ||= isPreviewableEntry(entry);
     }
   });
-  return { folders, files };
+  return { folders, files, hasPreviewableFiles };
 };
 
 const SelectionOverlay = memo(({ tag: Tag = 'div' }) => (
@@ -148,6 +156,7 @@ const GridFolderCard = memo(
     isContextHovered,
     selectionMode,
     itemHandlers,
+    thumbnailSize,
   }) => (
     <button
       type="button"
@@ -165,7 +174,7 @@ const GridFolderCard = memo(
           key={`${entry.path}:${previewEntries.map((preview) => preview.path).join(':')}`}
           entry={entry}
           previewEntries={previewEntries}
-          sizes="auto"
+          thumbnailSize={thumbnailSize}
         />
         {isBatchSelected && <SelectionOverlay />}
       </div>
@@ -180,7 +189,14 @@ const GridFolderCard = memo(
 GridFolderCard.displayName = 'GridFolderCard';
 
 const GridFileCard = memo(
-  ({ entry, isSelected, isBatchSelected, isContextHovered, selectionMode, itemHandlers }) => {
+  ({
+    entry,
+    isSelected,
+    isBatchSelected,
+    isContextHovered,
+    selectionMode,
+    itemHandlers,
+  }) => {
     const hasPreview = isPreviewableEntry(entry);
 
     return (
@@ -252,7 +268,6 @@ const ListEntryRow = memo(
                 key={`${entry.path}:${previewEntries.map((preview) => preview.path).join(':')}`}
                 entry={entry}
                 previewEntries={previewEntries}
-                sizes={LIST_THUMB_SIZES}
               />
             ) : hasPreview ? (
               <ThumbStack
@@ -298,7 +313,6 @@ const FileList = ({
   const gridRef = useRef(null);
   const longPressTimerRef = useRef(null);
   const longPressFiredRef = useRef(false);
-  const [gridReady, setGridReady] = useState(true);
 
   const normalizedEntries = useMemo(() => (Array.isArray(entries) ? entries : []), [entries]);
   const entryByPath = useMemo(() => {
@@ -309,7 +323,10 @@ const FileList = ({
     });
     return next;
   }, [normalizedEntries]);
-  const { folders, files } = useMemo(() => splitEntries(normalizedEntries), [normalizedEntries]);
+  const { folders, files, hasPreviewableFiles } = useMemo(
+    () => splitEntries(normalizedEntries),
+    [normalizedEntries]
+  );
   const folderPreviewsByPath = useMemo(() => {
     const previews = new Map();
     folders.forEach((folder) => {
@@ -332,59 +349,17 @@ const FileList = ({
     return next;
   }, [files]);
 
+  const { gridReady, thumbnailSize: gridThumbnailSize } = useGridThumbnailState({
+    containerRef,
+    hasPreviewableFiles,
+    scrollParent,
+    useWindowScroll,
+    viewMode,
+    zoomLevel,
+  });
+
   const selectedListIndex = selectedPath ? (entryByPath.get(selectedPath)?.index ?? -1) : -1;
   const selectedGridIndex = selectedPath ? (fileIndexByPath.get(selectedPath) ?? -1) : -1;
-
-  useEffect(() => {
-    if (viewMode !== 'grid') return;
-    const target = useWindowScroll ? window : scrollParent || containerRef.current;
-    const element = useWindowScroll ? null : target;
-    const hasSize = () => {
-      if (useWindowScroll) {
-        return window.innerWidth > 0 && window.innerHeight > 0;
-      }
-      return element && element.clientWidth > 0 && element.clientHeight > 0;
-    };
-
-    let frame = null;
-    const ensureReady = () => {
-      frame = null;
-      setGridReady(hasSize());
-      if (!hasSize()) {
-        frame = requestAnimationFrame(ensureReady);
-      }
-    };
-
-    frame = requestAnimationFrame(ensureReady);
-
-    return () => {
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, [viewMode, useWindowScroll, scrollParent]);
-
-  useEffect(() => {
-    if (viewMode !== 'grid') return undefined;
-    if (useWindowScroll) {
-      const handleResize = () => {
-        setGridReady(window.innerWidth > 0 && window.innerHeight > 0);
-      };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-
-    const element = scrollParent || containerRef.current;
-    if (!element || typeof ResizeObserver === 'undefined') return undefined;
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      const { width, height } = entry.contentRect;
-      setGridReady(width > 0 && height > 0);
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [viewMode, useWindowScroll, scrollParent]);
 
   useEffect(() => {
     if (viewMode !== 'list') return;
@@ -530,6 +505,7 @@ const FileList = ({
                   isContextHovered={isContextHovered}
                   selectionMode={selectionMode}
                   itemHandlers={itemHandlers}
+                  thumbnailSize={gridThumbnailSize}
                 />
               );
             })}
