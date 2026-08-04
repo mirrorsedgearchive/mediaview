@@ -255,6 +255,7 @@ const DirectoryPanelBody = memo(
     rootLabel,
     entryCount,
     sortedEntries,
+    folderChildren,
     viewMode,
     onSelect,
     selectedPath,
@@ -394,6 +395,7 @@ const DirectoryPanelBody = memo(
             {!searchLoading && !searchError && searchCount > 0 && (
               <FileList
                 entries={sortedEntries}
+                folderChildren={folderChildren}
                 viewMode={viewMode}
                 onSelect={onSelect}
                 selectedPath={selectedPath}
@@ -475,6 +477,7 @@ const DirectoryPanelBody = memo(
             {!status.loading && !status.error && entryCount > 0 && (
               <FileList
                 entries={sortedEntries}
+                folderChildren={folderChildren}
                 viewMode={viewMode}
                 onSelect={onSelect}
                 selectedPath={selectedPath}

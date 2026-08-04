@@ -122,6 +122,9 @@ export const useDirectoryData = () => {
         setLastGoodPathValue(pathValue);
       }
       applyDirectoryState(cached, pathValue, selection, selectPath, preserveSelection);
+      if (cached.isPartial) {
+        void loadChildren(pathValue, { silent: true });
+      }
       prefetchMissingChildren(cached.entries);
       if (pathValue) {
         void hydratePathChain(pathValue);
