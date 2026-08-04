@@ -13,6 +13,9 @@ export const createRequestError = (message, status) => {
 };
 
 export const normalizeRequestError = (error, fallbackMessage) => {
+  if (error?.name === 'AbortError') {
+    return error;
+  }
   if (error && typeof error === 'object' && 'retryable' in error) {
     return error;
   }

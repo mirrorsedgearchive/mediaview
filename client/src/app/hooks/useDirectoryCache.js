@@ -59,15 +59,18 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
     }
   };
 
-  const requestList = async (pathValue) => {
+  const requestList = async (pathValue, options = {}) => {
+    const { signal } = options;
     const key = pathValue || '';
     const existingRequest = inflightRef.current.get(key);
-    if (existingRequest) return existingRequest;
+    if (existingRequest && !existingRequest.signal?.aborted) {
+      return existingRequest.request;
+    }
     const encodedPath = encodePathSegments(key);
     const url = encodedPath ? `${API_BASE}/api/list/${encodedPath}` : `${API_BASE}/api/list`;
     const request = (async () => {
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal });
         if (!response.ok) {
           if (response.status === 404) {
             throw createRequestError('Requested content could not be found.', response.status);
@@ -78,17 +81,17 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
       } catch (error) {
         throw normalizeRequestError(error, `Failed to load ${key || 'root'}`);
       } finally {
-        if (inflightRef.current.get(key) === request) {
+        if (inflightRef.current.get(key)?.request === request) {
           inflightRef.current.delete(key);
         }
       }
     })();
-    inflightRef.current.set(key, request);
+    inflightRef.current.set(key, { request, signal });
     return request;
   };
 
   const fetchList = async (pathValue, options = {}) => {
-    const { force = false, background = false, onBackgroundUpdate } = options;
+    const { force = false, background = false, onBackgroundUpdate, signal } = options;
     const cached = getCachedListing(pathValue);
     if (cached && !force) {
       if (background) {
@@ -103,7 +106,7 @@ export const useDirectoryCache = ({ updateTreeWithEntries }) => {
       }
       return cached;
     }
-    return requestList(pathValue);
+    return requestList(pathValue, { signal });
   };
 
   const hydratePathChain = async (pathValue) => {

@@ -24,6 +24,7 @@ const writeStoredValue = (key, value) => {
 
 const viewModeKey = 'mediaview:viewMode';
 const zoomLevelKey = 'mediaview:zoomLevel';
+const MAX_PREFETCH_CONCURRENCY = 4;
 
 export const useDirectoryData = () => {
   const [directory, setDirectory] = useState(null);
@@ -67,6 +68,11 @@ export const useDirectoryData = () => {
   const currentPathRef = useRef('');
   const [lastGoodPath, setLastGoodPath] = useState('');
   const resolvePathRef = useRef(0);
+  const foregroundRequestRef = useRef(0);
+  const foregroundAbortRef = useRef(null);
+  const prefetchQueueRef = useRef([]);
+  const queuedPrefetchesRef = useRef(new Set());
+  const activePrefetchesRef = useRef(new Set());
 
   const setLastGoodPathValue = (value, options = {}) => {
     const { allowEmpty = false } = options;
@@ -104,6 +110,11 @@ export const useDirectoryData = () => {
 
   const loadDirectory = async (pathValue, options = {}) => {
     const { selectPath = '', openLightbox = true, force = false } = options;
+    foregroundRequestRef.current += 1;
+    const foregroundRequest = foregroundRequestRef.current;
+    foregroundAbortRef.current?.abort();
+    const controller = new AbortController();
+    foregroundAbortRef.current = controller;
     const preserveSelection = !selectPath && pathValue === currentPathRef.current;
     setPendingSelection(selectPath || '');
     if (selectPath) {
@@ -137,11 +148,14 @@ export const useDirectoryData = () => {
       expandAncestors(pathValue);
     }
     try {
-      const listPromise = fetchList(pathValue, { force });
+      const listPromise = fetchList(pathValue, { force, signal: controller.signal });
       if (pathValue) {
         void hydratePathChain(pathValue);
       }
       const data = await listPromise;
+      if (foregroundRequest !== foregroundRequestRef.current) {
+        return { selection: null, shouldLightbox: false };
+      }
       applyListing(pathValue, data, { expand: true });
       const selection = getSelection(data.entries, selectPath);
       const shouldLightbox = openLightbox && Boolean(selectPath) && isViewableEntry(selection);
@@ -152,6 +166,9 @@ export const useDirectoryData = () => {
       prefetchMissingChildren(data.entries);
       return { selection, shouldLightbox };
     } catch (error) {
+      if (error?.name === 'AbortError' || foregroundRequest !== foregroundRequestRef.current) {
+        return { selection: null, shouldLightbox: false };
+      }
       const fallbackPath = getLastResolvablePath(pathValue);
       setLastGoodPathValue(fallbackPath, { allowEmpty: true });
       resolvePathRef.current += 1;
@@ -197,15 +214,41 @@ export const useDirectoryData = () => {
     }
   };
 
+  const drainPrefetchQueue = () => {
+    while (
+      activePrefetchesRef.current.size < MAX_PREFETCH_CONCURRENCY &&
+      prefetchQueueRef.current.length > 0
+    ) {
+      const childPath = prefetchQueueRef.current.shift();
+      queuedPrefetchesRef.current.delete(childPath);
+      if (!childPath || getCachedListing(childPath) || activePrefetchesRef.current.has(childPath)) {
+        continue;
+      }
+      activePrefetchesRef.current.add(childPath);
+      void loadChildren(childPath, { silent: true }).finally(() => {
+        activePrefetchesRef.current.delete(childPath);
+        drainPrefetchQueue();
+      });
+    }
+  };
+
   const prefetchMissingChildren = (entries) => {
     if (!Array.isArray(entries)) return;
     entries
       .filter((entry) => entry?.isDir)
       .map((entry) => entry.path)
-      .filter((childPath) => childPath && !getCachedListing(childPath))
+      .filter(
+        (childPath) =>
+          childPath &&
+          !getCachedListing(childPath) &&
+          !queuedPrefetchesRef.current.has(childPath) &&
+          !activePrefetchesRef.current.has(childPath)
+      )
       .forEach((childPath) => {
-        void loadChildren(childPath, { silent: true });
+        queuedPrefetchesRef.current.add(childPath);
+        prefetchQueueRef.current.push(childPath);
       });
+    drainPrefetchQueue();
   };
 
   const handleToggle = (pathValue) => {
