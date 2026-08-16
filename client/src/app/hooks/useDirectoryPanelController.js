@@ -372,6 +372,7 @@ const useDirectoryPanelController = () => {
       sortedEntries,
       folderChildren: directory?.children,
       folderCustomThumbnails: directory?.customThumbnails,
+      folderContentWarnings: directory?.contentWarnings,
       viewMode,
       onSelect,
       selectedPath,
