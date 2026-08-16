@@ -284,6 +284,7 @@ const FileList = ({
   entries,
   folderChildren,
   folderCustomThumbnails,
+  folderContentWarnings,
   viewMode,
   onSelect,
   selectedPath,
@@ -318,6 +319,10 @@ const FileList = ({
   const folderPreviewsByPath = useMemo(() => {
     const previews = new Map();
     folders.forEach((folder) => {
+      if (folderContentWarnings?.[folder.path]) {
+        previews.set(folder.path, []);
+        return;
+      }
       const customThumbnails = folderCustomThumbnails?.[folder.path];
       const children = folderChildren?.[folder.path];
       previews.set(
@@ -330,7 +335,7 @@ const FileList = ({
       );
     });
     return previews;
-  }, [folderChildren, folderCustomThumbnails, folders]);
+  }, [folderChildren, folderCustomThumbnails, folderContentWarnings, folders]);
   const fileIndexByPath = useMemo(() => {
     const next = new Map();
     files.forEach((entry, index) => {

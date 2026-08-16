@@ -248,6 +248,7 @@ const DirectoryPanelBody = memo(
     sortedEntries,
     folderChildren,
     folderCustomThumbnails,
+    folderContentWarnings,
     viewMode,
     onSelect,
     selectedPath,
@@ -389,6 +390,7 @@ const DirectoryPanelBody = memo(
                 entries={sortedEntries}
                 folderChildren={folderChildren}
                 folderCustomThumbnails={folderCustomThumbnails}
+                folderContentWarnings={folderContentWarnings}
                 viewMode={viewMode}
                 onSelect={onSelect}
                 selectedPath={selectedPath}
@@ -474,6 +476,7 @@ const DirectoryPanelBody = memo(
                 entries={sortedEntries}
                 folderChildren={folderChildren}
                 folderCustomThumbnails={folderCustomThumbnails}
+                folderContentWarnings={folderContentWarnings}
                 viewMode={viewMode}
                 onSelect={onSelect}
                 selectedPath={selectedPath}
