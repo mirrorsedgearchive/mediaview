@@ -36,7 +36,13 @@ const useAppController = () => {
     retry: retrySearch,
   } = search;
   const { mode: viewMode, setMode: setViewMode, zoom: zoomLevel, setZoom: setZoomLevel } = view;
-  const { loadDirectory } = actions;
+  const {
+    loadDirectory,
+    contentWarning,
+    confirmContentWarning,
+    cancelContentWarning,
+    clearAcceptedContentWarnings,
+  } = actions;
   const {
     selectionMode,
     selectedPaths,
@@ -103,11 +109,23 @@ const useAppController = () => {
   }, []);
 
   const navigateTo = useCallback(async (pathValue, options = {}) => {
-    const { selectPath = '', updateUrl = true, replaceUrl = false, openLightbox = true } = options;
-    const { selection: nextSelection, shouldLightbox } = await loadDirectoryRef.current(pathValue, {
+    const {
+      selectPath = '',
+      updateUrl = true,
+      replaceUrl = false,
+      openLightbox = true,
+      fromUrl = false,
+    } = options;
+    const {
+      selection: nextSelection,
+      shouldLightbox,
+      blocked,
+    } = await loadDirectoryRef.current(pathValue, {
       selectPath,
       openLightbox,
+      fromUrl,
     });
+    if (blocked) return;
     setLightboxOpen(shouldLightbox);
     if (updateUrl) {
       setUrlState(
@@ -119,6 +137,21 @@ const useAppController = () => {
       );
     }
   }, []);
+
+  const handleConfirmContentWarning = useCallback(() => {
+    const navigation = confirmContentWarning();
+    if (!navigation) return;
+    void navigateTo(navigation.pathValue, {
+      selectPath: navigation.selectPath,
+      openLightbox: navigation.openLightbox,
+    });
+  }, [confirmContentWarning, navigateTo]);
+
+  const handleCancelContentWarning = useCallback(() => {
+    const fallbackPath = cancelContentWarning();
+    if (fallbackPath === null) return;
+    void navigateTo(fallbackPath, { replaceUrl: true, openLightbox: false });
+  }, [cancelContentWarning, navigateTo]);
 
   const {
     clearSearchState,
@@ -363,6 +396,10 @@ const useAppController = () => {
     setTheme,
     snackbar,
     handleDismissSnackbar,
+    contentWarning,
+    confirmContentWarning: handleConfirmContentWarning,
+    cancelContentWarning: handleCancelContentWarning,
+    clearAcceptedContentWarnings,
   });
 
   return {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildFileUrl } from '../../lib/api.js';
+import { sanitizeMarkdown } from '../../lib/sanitize.js';
 import {
   getImageMimeType,
   getImageSupportStatus,
@@ -19,6 +20,13 @@ import {
 
 const LARGE_FILE_THRESHOLD_BYTES = 10 * 1024 * 1024;
 const TEXT_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
+
+const getEntrySize = (value) => {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  const size = Number(value);
+  return Number.isFinite(size) && size >= 0 ? size : null;
+};
+
 const EMPTY_MEDIA_META = {
   width: null,
   height: null,
@@ -37,7 +45,6 @@ const LOADING_TEXT_PREVIEW = {
   status: 'loading',
 };
 
-let markdownLibPromise = null;
 const loadedLargeFileKeys = new Set();
 const preloadedLightboxAssetKeys = new Set();
 const pendingLightboxPreloads = new Map();
@@ -79,18 +86,6 @@ const resetClosedState = ({
   setImageSupportStatus('supported');
 };
 
-const loadMarkdownLibs = () => {
-  if (!markdownLibPromise) {
-    markdownLibPromise = Promise.all([import('snarkdown'), import('xss')]).then(
-      ([snarkdownModule, xssModule]) => ({
-        snarkdown: snarkdownModule.default || snarkdownModule,
-        xss: xssModule.default || xssModule,
-      })
-    );
-  }
-  return markdownLibPromise;
-};
-
 const cancelPendingPreload = (key) => {
   if (!key) return;
   pendingLightboxPreloads.get(key)?.abort?.();
@@ -106,8 +101,10 @@ const cancelPendingIdlePreload = () => {
   pendingLightboxIdleCallbackId = null;
 };
 
-const isWithinPreloadLimit = (entry) =>
-  !Number.isFinite(entry?.size) || entry.size < LARGE_FILE_THRESHOLD_BYTES;
+const isWithinPreloadLimit = (entry) => {
+  const size = getEntrySize(entry?.size);
+  return size === null || size < LARGE_FILE_THRESHOLD_BYTES;
+};
 
 const isEligibleForAdjacentPreload = async (entry) => {
   if (!entry?.path || entry.isDir) return false;
@@ -301,7 +298,7 @@ export const useLightboxController = ({
   const selectedName = selectedEntry?.name || '';
   const selectedExt = getEntryExtension(selectedEntry);
   const selectedImageMimeType = getImageMimeType(selectedEntry);
-  const selectedSize = selectedEntry?.size;
+  const selectedSize = getEntrySize(selectedEntry?.size);
   const previewSource = selectedPath ? buildFileUrl(selectedPath) : '';
 
   const isVideo = isVideoEntry(selectedEntry);
@@ -314,9 +311,8 @@ export const useLightboxController = ({
   const isMarkdown = isText && selectedExt === '.md';
   const shouldShowDimensions = isImage || isVideo;
   const hasDimensions = Number.isFinite(mediaMeta.width) && Number.isFinite(mediaMeta.height);
-  const fileKey = selectedPath;
   const isLargeFile = Number.isFinite(selectedSize) && selectedSize >= LARGE_FILE_THRESHOLD_BYTES;
-  const isSessionApprovedLargeFile = fileKey && loadedLargeFileKeys.has(fileKey);
+  const isSessionApprovedLargeFile = selectedPath && loadedLargeFileKeys.has(selectedPath);
   const isLargeText =
     isText && Number.isFinite(selectedSize) && selectedSize > TEXT_PREVIEW_MAX_BYTES;
   const canPreviewText = !isLargeText;
@@ -496,14 +492,6 @@ export const useLightboxController = ({
   }, [isImage, open, selectedImageMimeType, selectedPath]);
 
   useEffect(() => {
-    if (!open || !fileKey) return;
-    if (!isLargeFile || isStreamable || !canPreviewEntry) return;
-    if (!shouldGateLargeFile) {
-      loadedLargeFileKeys.add(fileKey);
-    }
-  }, [canPreviewEntry, fileKey, isLargeFile, isStreamable, open, shouldGateLargeFile]);
-
-  useEffect(() => {
     if (!open || !selectedPath) return;
     if (isImage && !shouldRenderImage) return;
     if (isVideo && videoRef.current?.readyState >= 2) {
@@ -556,9 +544,8 @@ export const useLightboxController = ({
 
         let html = '';
         if (isMarkdown) {
-          const { snarkdown, xss } = await loadMarkdownLibs();
           if (controller.signal.aborted) return;
-          html = xss(snarkdown(content));
+          html = await sanitizeMarkdown(content);
         }
 
         setTextPreview({
@@ -601,7 +588,7 @@ export const useLightboxController = ({
 
   useEffect(() => {
     if (open && isMarkdown) {
-      void loadMarkdownLibs();
+      void sanitizeMarkdown('');
     }
   }, [open, isMarkdown]);
 
@@ -692,14 +679,14 @@ export const useLightboxController = ({
   }, []);
 
   const handleLoadLargeFile = useCallback(() => {
-    if (fileKey) {
-      loadedLargeFileKeys.add(fileKey);
+    if (selectedPath) {
+      loadedLargeFileKeys.add(selectedPath);
     }
     if (disableLargeFileWarningsChecked) {
       onDisableLargeFileWarnings?.();
     }
     setLargeFileWarningDismissed(true);
-  }, [disableLargeFileWarningsChecked, fileKey, onDisableLargeFileWarnings]);
+  }, [disableLargeFileWarningsChecked, onDisableLargeFileWarnings, selectedPath]);
 
   const handleNavigateFromPath = useCallback(() => {
     onNavigatePath?.(selectedEntry);

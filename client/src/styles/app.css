@@ -8,6 +8,8 @@
 @import './components/layout.css';
 @import './components/lightbox.css';
 @import './components/lightbox-warning.css';
+@import './components/buttons.css';
+@import './components/content-warning.css';
 @import './components/media-list.css';
 @import './components/navigation.css';
 @import './components/panel.css';

@@ -1,10 +1,44 @@
-@keyframes fadeIn {
+.app-modal-backdrop.is-interactive {
+  cursor: pointer;
+}
+
+.app-modal-backdrop {
+  animation: appModalBackdropFadeIn var(--motion-overlay) ease-out both;
+}
+
+.app-modal {
+  opacity: 0;
+  animation: appModalFadeIn var(--motion-emphasis) ease-out forwards;
+  will-change: opacity;
+}
+
+@keyframes appModalBackdropFadeIn {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
+
   to {
     opacity: 1;
-    transform: translateY(0);
+  }
+}
+
+@keyframes appModalFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

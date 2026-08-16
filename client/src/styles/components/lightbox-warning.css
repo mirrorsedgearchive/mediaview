@@ -1,9 +1,11 @@
 .lightbox-warning {
   width: min(100%, 540px);
   padding: 20px 22px;
-  border-radius: 0;
-  background: #1b1b1b;
-  color: #f1f1f1;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   display: grid;
   gap: 10px;
   text-align: left;
@@ -16,13 +18,14 @@
 
 .lightbox-warning-copy {
   font-size: 12px;
-  color: rgba(241, 241, 241, 0.7);
+  color: var(--muted);
   line-height: 1.5;
 }
 
 .lightbox-warning-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -32,7 +35,7 @@
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: rgba(241, 241, 241, 0.65);
+  color: var(--muted);
   cursor: pointer;
   user-select: none;
 }
@@ -40,35 +43,6 @@
 .lightbox-warning-checkbox input[type='checkbox'] {
   width: 14px;
   height: 14px;
-  accent-color: #f1f1f1;
+  accent-color: var(--accent);
   cursor: pointer;
-}
-
-.lightbox-warning-button {
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #f1f1f1;
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    color 160ms ease;
-}
-
-.lightbox-warning-button.is-secondary {
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.lightbox-warning-button:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.lightbox-warning-button.is-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
 }

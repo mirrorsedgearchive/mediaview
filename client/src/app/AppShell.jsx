@@ -3,6 +3,7 @@ import {
   AppHeader,
   Breadcrumbs,
   ConnectionLightbox,
+  ContentWarningModal,
   DirectoryPanel,
   Lightbox,
   SettingsModal,
@@ -168,12 +169,14 @@ const AppOverlays = ({
   connectionLightboxProps,
   lightboxProps,
   settingsModalProps,
+  contentWarningModalProps,
   snackbarProps,
 }) => (
   <>
     {connectionLightboxProps?.open && <ConnectionLightbox {...connectionLightboxProps} />}
     {lightboxProps?.open && <Lightbox {...lightboxProps} />}
     {settingsModalProps?.open && <SettingsModal {...settingsModalProps} />}
+    {contentWarningModalProps?.warning && <ContentWarningModal {...contentWarningModalProps} />}
     <Snackbar {...snackbarProps} />
   </>
 );

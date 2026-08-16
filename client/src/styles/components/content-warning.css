@@ -1,0 +1,32 @@
+.download-modal-header.content-warning-header {
+  align-items: center;
+}
+
+.content-warning-icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.content-warning-icon .icon {
+  width: 28px;
+  height: 28px;
+}
+
+.content-warning-copy {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.content-warning-cta {
+  margin: 16px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.content-warning-copy > :first-child {
+  margin-top: 0;
+}

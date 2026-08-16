@@ -15,7 +15,7 @@
   gap: 0;
   padding: 0;
   border-right: 1px solid var(--border);
-  transition: background-color 0.2s ease;
+  transition: background-color var(--motion-standard) ease;
 }
 
 .view-segment:last-child {
@@ -37,7 +37,7 @@
   font-weight: 600;
   padding: 0 10px;
   height: 100%;
-  transition: color 0.2s ease;
+  transition: color var(--motion-standard) ease;
 }
 
 .view-segment.active .view-button {
@@ -70,9 +70,9 @@
   width: auto;
   overflow: hidden;
   transition:
-    width 0.18s ease,
-    opacity 0.18s ease,
-    transform 0.18s ease;
+    width var(--motion-overlay) ease,
+    opacity var(--motion-overlay) ease,
+    transform var(--motion-overlay) ease;
   justify-content: center;
 }
 
@@ -87,8 +87,8 @@
   padding: 0 8px;
   border-radius: 8px;
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+    background-color var(--motion-standard) ease,
+    color var(--motion-standard) ease;
 }
 
 .size-toggle button.active {

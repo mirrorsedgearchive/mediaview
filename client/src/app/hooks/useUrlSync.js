@@ -52,7 +52,11 @@ export const useUrlSync = ({
         currentClearSearch();
       }
       const derivedPath = urlState.path;
-      void currentNavigateTo(derivedPath, { selectPath: urlState.preview, updateUrl: false });
+      void currentNavigateTo(derivedPath, {
+        selectPath: urlState.preview,
+        updateUrl: false,
+        fromUrl: true,
+      });
     };
     applyUrlState();
     const handlePop = () => applyUrlState();

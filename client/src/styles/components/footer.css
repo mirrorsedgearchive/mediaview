@@ -15,8 +15,8 @@
   opacity: 0;
   pointer-events: none;
   transition:
-    transform 220ms ease-out,
-    opacity 160ms ease-out;
+    transform var(--motion-emphasis) ease-out,
+    opacity var(--motion-control) ease-out;
   z-index: 8;
 }
 

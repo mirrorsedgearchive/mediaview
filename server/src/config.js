@@ -21,6 +21,7 @@ export const THUMB_SIZES = {
   md: 400,
   lg: 600,
 };
+export const CONTENT_WARNING_FILE = 'content-warning.txt';
 export const HASH_CACHE_SCAN_INTERVAL_MS = Number(process.env.HASH_CACHE_SCAN_INTERVAL_MS) || 60000;
 
 const DEFAULT_EXCLUDED_PATTERNS = ['.DS_Store', '_h5ai'];
