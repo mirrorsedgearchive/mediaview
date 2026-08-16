@@ -21,6 +21,10 @@ const useAppOverlaysProps = ({
   setTheme,
   snackbar,
   handleDismissSnackbar,
+  contentWarning,
+  confirmContentWarning,
+  cancelContentWarning,
+  clearAcceptedContentWarnings,
 }) => {
   const handleDisableLargeFileWarnings = useCallback(() => {
     setWarnOnLargeFiles(false);
@@ -54,6 +58,12 @@ const useAppOverlaysProps = ({
         onThemeChange: setTheme,
         warnOnLargeFiles,
         onWarnOnLargeFilesChange: setWarnOnLargeFiles,
+        onClearContentWarnings: clearAcceptedContentWarnings,
+      },
+      contentWarningModalProps: {
+        warning: contentWarning,
+        onShow: confirmContentWarning,
+        onCancel: cancelContentWarning,
       },
       snackbarProps: {
         open: snackbar.open,
@@ -63,6 +73,10 @@ const useAppOverlaysProps = ({
     }),
     [
       activeLightboxIndex,
+      cancelContentWarning,
+      confirmContentWarning,
+      contentWarning,
+      clearAcceptedContentWarnings,
       handleClose,
       handleCloseSettings,
       handleDismissSnackbar,

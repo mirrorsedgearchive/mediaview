@@ -9,15 +9,19 @@
 }
 
 .settings-backdrop {
-  position: absolute;
+  position: fixed;
   inset: 0;
   border: none;
-  background: transparent;
+  background: rgba(16, 16, 16, 0.6);
   cursor: pointer;
+  z-index: 30;
 }
 
 .settings-card {
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: min(92vw, 560px);
   max-height: min(80vh, 640px);
   background: var(--panel);
@@ -29,6 +33,7 @@
   flex-direction: column;
   gap: 16px;
   overflow: auto;
+  z-index: 31;
 }
 
 .settings-header {
@@ -137,6 +142,9 @@
     max-height: 100%;
     border-radius: 0;
     padding: 22px 20px;
+    top: 0;
+    left: 0;
+    transform: none;
   }
 
   .settings-row {

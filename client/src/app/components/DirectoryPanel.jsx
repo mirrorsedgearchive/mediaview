@@ -3,6 +3,8 @@ import { formatSize } from '../../lib/format.js';
 import { useDirectoryPanelController } from '../hooks/useDirectoryPanelController.js';
 import {
   FileList,
+  Button,
+  Modal,
   IconCheck2Square,
   IconCheckCircleFill,
   IconClose,
@@ -22,87 +24,78 @@ const DownloadConfirmModal = memo(({ summary, onCancel, onConfirm }) => {
       : '';
 
   return (
-    <>
-      <button
-        type="button"
-        className="download-modal-backdrop"
-        onClick={onCancel}
-        aria-label="Close download confirmation"
-      />
-      <div
-        className="download-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="download-modal-title"
-      >
-        <div className="download-modal-header">
+    <Modal
+      className="download-modal"
+      backdropClassName="download-modal-backdrop"
+      onClose={onCancel}
+      ariaLabelledBy="download-modal-title"
+      ariaLabel="Download confirmation"
+    >
+      <div className="download-modal-header">
+        <div className="download-modal-icon" aria-hidden="true">
+          <IconDownload />
+        </div>
+        <div>
           <div className="download-modal-title" id="download-modal-title">
             Ready to download
           </div>
           <div className="download-modal-sub">Review your selection and start the download.</div>
         </div>
-        <div className="download-modal-body">
-          <div className="download-modal-row">
-            <span>Items</span>
-            <strong>{summary.totalFiles}</strong>
-          </div>
-          <div className="download-modal-row">
-            <span>Total size</span>
-            <strong>{formatSize(summary.totalBytes)}</strong>
-          </div>
-          {warning && <div className="download-modal-warning">{warning}</div>}
-        </div>
-        <div className="download-modal-actions">
-          <button type="button" className="download-modal-btn is-secondary" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="button" className="download-modal-btn" onClick={onConfirm}>
-            Download
-          </button>
-        </div>
       </div>
-    </>
+      <div className="download-modal-body">
+        <div className="download-modal-row">
+          <span>Items</span>
+          <strong>{summary.totalFiles}</strong>
+        </div>
+        <div className="download-modal-row">
+          <span>Total size</span>
+          <strong>{formatSize(summary.totalBytes)}</strong>
+        </div>
+        {warning && <div className="download-modal-warning">{warning}</div>}
+      </div>
+      <div className="download-modal-actions">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={onConfirm}>Download</Button>
+      </div>
+    </Modal>
   );
 });
 
 DownloadConfirmModal.displayName = 'DownloadConfirmModal';
 
-const DownloadProgressModal = memo(({ state, progressValue, progressMax, onCancel, onDismiss }) => (
-  <>
-    {state.status === 'listing' ||
-    state.status === 'downloading' ||
-    state.status === 'finalizing' ? (
-      <div className="download-progress-backdrop" aria-hidden="true" />
-    ) : (
-      <button
-        type="button"
-        className="download-progress-backdrop"
-        onClick={onDismiss}
-        aria-label="Close download status"
-      />
-    )}
-    <div
+const DownloadProgressModal = memo(({ state, progressValue, progressMax, onCancel, onDismiss }) => {
+  const canClose = !['listing', 'downloading', 'finalizing'].includes(state.status);
+
+  return (
+    <Modal
       className="download-progress-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="download-progress-title"
+      backdropClassName="download-progress-backdrop"
+      onClose={canClose ? onDismiss : undefined}
+      ariaLabelledBy="download-progress-title"
+      ariaLabel="Download status"
     >
       <div className="download-progress-header">
-        <div className="download-progress-title" id="download-progress-title">
-          {state.status === 'listing' && 'Preparing download'}
-          {state.status === 'downloading' && 'Downloading files'}
-          {state.status === 'finalizing' && 'Finishing download'}
-          {state.status === 'warning' && 'Download finished with warnings'}
-          {state.status === 'done' && 'Download complete'}
-          {state.status === 'error' && 'Download failed'}
-          {state.status === 'cancelled' && 'Download cancelled'}
+        <div className="download-modal-icon" aria-hidden="true">
+          <IconDownload />
         </div>
-        <div className="download-progress-sub">
-          {state.status === 'listing' ||
-          state.status === 'downloading' ||
-          state.status === 'finalizing'
-            ? 'Preparing your selected files, please wait.'
-            : 'You can close this window when you are ready.'}
+        <div>
+          <div className="download-progress-title" id="download-progress-title">
+            {state.status === 'listing' && 'Preparing download'}
+            {state.status === 'downloading' && 'Downloading files'}
+            {state.status === 'finalizing' && 'Finishing download'}
+            {state.status === 'warning' && 'Download finished with warnings'}
+            {state.status === 'done' && 'Download complete'}
+            {state.status === 'error' && 'Download failed'}
+            {state.status === 'cancelled' && 'Download cancelled'}
+          </div>
+          <div className="download-progress-sub">
+            {state.status === 'listing' && 'Preparing your selected folders...'}
+            {state.status === 'finalizing' && 'Finishing your download...'}
+            {['warning', 'done', 'error', 'cancelled'].includes(state.status) &&
+              'You can close this window when you are ready.'}
+          </div>
         </div>
       </div>
       <div className="download-progress-body">
@@ -138,7 +131,7 @@ const DownloadProgressModal = memo(({ state, progressValue, progressMax, onCance
           <div className="download-progress-meta">
             {state.status === 'warning' && 'The download finished, but some items may be missing.'}
             {state.status === 'done' && 'Your files are saved to the selected download location.'}
-            {state.status === 'error' && 'Could not not finish the download. Please try again.'}
+            {state.status === 'error' && 'Could not finish the download. Please try again.'}
             {state.status === 'cancelled' && 'The download was cancelled.'}
           </div>
         )}
@@ -151,18 +144,16 @@ const DownloadProgressModal = memo(({ state, progressValue, progressMax, onCance
         {state.status === 'listing' ||
         state.status === 'downloading' ||
         state.status === 'finalizing' ? (
-          <button type="button" className="download-modal-btn is-secondary" onClick={onCancel}>
+          <Button variant="secondary" onClick={onCancel}>
             Cancel download
-          </button>
+          </Button>
         ) : (
-          <button type="button" className="download-modal-btn" onClick={onDismiss}>
-            Close
-          </button>
+          <Button onClick={onDismiss}>Close</Button>
         )}
       </div>
-    </div>
-  </>
-));
+    </Modal>
+  );
+});
 
 DownloadProgressModal.displayName = 'DownloadProgressModal';
 
@@ -256,6 +247,7 @@ const DirectoryPanelBody = memo(
     entryCount,
     sortedEntries,
     folderChildren,
+    folderCustomThumbnails,
     viewMode,
     onSelect,
     selectedPath,
@@ -396,6 +388,7 @@ const DirectoryPanelBody = memo(
               <FileList
                 entries={sortedEntries}
                 folderChildren={folderChildren}
+                folderCustomThumbnails={folderCustomThumbnails}
                 viewMode={viewMode}
                 onSelect={onSelect}
                 selectedPath={selectedPath}
@@ -412,7 +405,9 @@ const DirectoryPanelBody = memo(
           </>
         ) : (
           <>
-            {status.loading && !status.error && <div className="state">Loading...</div>}
+            {status.loading && !status.error && entryCount === 0 && (
+              <div className="state">Loading...</div>
+            )}
             {status.error &&
               (isNotFound ? (
                 <div className="not-found">
@@ -466,7 +461,7 @@ const DirectoryPanelBody = memo(
                   </div>
                 </div>
               ))}
-            {!status.loading && !status.error && entryCount === 0 && (
+            {!status.error && (!status.loading || entryCount > 0) && entryCount === 0 && (
               <div className="state empty">
                 <span className="state-icon" aria-hidden="true">
                   <IconFolderOpen />
@@ -474,10 +469,11 @@ const DirectoryPanelBody = memo(
                 <div className="state-title">Nothing in here</div>
               </div>
             )}
-            {!status.loading && !status.error && entryCount > 0 && (
+            {!status.error && (!status.loading || entryCount > 0) && entryCount > 0 && (
               <FileList
                 entries={sortedEntries}
                 folderChildren={folderChildren}
+                folderCustomThumbnails={folderCustomThumbnails}
                 viewMode={viewMode}
                 onSelect={onSelect}
                 selectedPath={selectedPath}
@@ -521,29 +517,28 @@ const DirectoryPanelSelectionBar = memo(
             <div className="selection-bar-meta">{selectedCount} selected</div>
           </div>
         </div>
-        <button
-          type="button"
-          className="panel-action-btn is-secondary selection-bar-cancel"
+        <Button
+          variant="secondary"
+          className="selection-bar-cancel"
           onClick={onCancelSelection}
           disabled={isDownloading}
         >
           <IconClose />
           Cancel
-        </button>
+        </Button>
       </div>
       <div className="selection-bar-actions">
-        <button
-          type="button"
-          className="panel-action-btn is-secondary selection-bar-select-all"
+        <Button
+          variant="secondary"
+          className="selection-bar-select-all"
           onClick={onSelectAllFiles}
           disabled={!canSelectAllFiles || isDownloading}
         >
           <IconCheckCircleFill />
           Select all files
-        </button>
-        <button
-          type="button"
-          className="panel-action-btn is-primary selection-bar-download"
+        </Button>
+        <Button
+          className="selection-bar-download"
           onClick={onRequestDownload}
           disabled={!hasSelection || isDownloading}
         >
@@ -551,7 +546,7 @@ const DirectoryPanelSelectionBar = memo(
           {isDownloading
             ? 'Downloading...'
             : `Download${hasSelection ? ` (${selectedCount})` : ''}`}
-        </button>
+        </Button>
       </div>
     </div>
   )

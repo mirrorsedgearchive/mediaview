@@ -101,7 +101,7 @@
 }
 
 .directory-content {
-  animation: directory-fade-in 140ms ease-out;
+  animation: directory-fade-in var(--motion-fast) ease-out;
 }
 
 @keyframes directory-fade-in {
@@ -112,12 +112,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .directory-content {
-    animation: none;
   }
 }
 
@@ -152,7 +146,7 @@
   gap: 10px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
   z-index: 6;
-  animation: selection-bar-rise 180ms ease-out;
+  animation: selection-bar-rise var(--motion-overlay) ease-out;
 }
 
 .selection-bar-top {
@@ -210,7 +204,7 @@
   gap: 8px;
 }
 
-.selection-bar-actions .panel-action-btn {
+.selection-bar-actions .app-button {
   white-space: nowrap;
   justify-content: center;
 }
@@ -469,6 +463,7 @@
   inset: 0;
   border: none;
   background: rgba(16, 16, 16, 0.55);
+  cursor: pointer;
   z-index: 50;
 }
 
@@ -489,6 +484,24 @@
   gap: 12px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   z-index: 51;
+}
+
+.download-modal-header,
+.download-progress-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.download-modal-icon {
+  display: inline-flex;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.download-modal-icon .icon {
+  width: 28px;
+  height: 28px;
 }
 
 .download-modal-title {
@@ -534,32 +547,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-}
-
-.download-modal-btn {
-  border: 1px solid var(--accent-border);
-  background: var(--accent-bg-strong);
-  color: var(--accent);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.download-modal-btn.is-secondary {
-  border-color: var(--divider-subtle);
-  background: transparent;
-  color: var(--text-subtle);
-}
-
-.download-modal-btn:hover {
-  background: var(--accent-bg-emphasis-hover);
-}
-
-.download-modal-btn.is-secondary:hover {
-  background: var(--panel-2);
-  border-color: var(--divider);
 }
 
 .download-progress-backdrop {

@@ -28,6 +28,14 @@
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-serif: 'Times New Roman', Times, serif;
+  --motion-instant: 120ms;
+  --motion-fast: 140ms;
+  --motion-hover: 150ms;
+  --motion-control: 160ms;
+  --motion-overlay: 180ms;
+  --motion-standard: 200ms;
+  --motion-emphasis: 220ms;
+  --motion-spinner: 900ms;
   --topbar-height: 56px;
   --breadcrumbs-height: 40px;
   --dark-bg: #0f0f10;

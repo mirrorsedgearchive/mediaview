@@ -25,7 +25,7 @@
     calc(32px + var(--lightbox-safe-left));
   z-index: 20;
   opacity: 0;
-  animation: lightboxFade 0.18s ease-out forwards;
+  animation: lightboxFade var(--motion-overlay) ease-out forwards;
   will-change: opacity;
   backface-visibility: hidden;
 }
@@ -86,21 +86,6 @@
   justify-content: flex-end;
 }
 
-.connection-lightbox-button {
-  border: 1px solid var(--accent-border);
-  background: var(--accent-bg-strong);
-  color: var(--accent);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.connection-lightbox-button:hover {
-  background: var(--accent-bg-emphasis-hover);
-}
-
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
@@ -121,7 +106,7 @@
   z-index: 1;
   pointer-events: none;
   transform: translateY(8px) scale(0.985);
-  animation: lightboxRise 0.22s ease-out forwards;
+  animation: lightboxRise var(--motion-emphasis) ease-out forwards;
   will-change: transform, opacity;
   backface-visibility: hidden;
 }
@@ -186,9 +171,9 @@
   place-items: center;
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    background var(--motion-hover) ease,
+    border-color var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .lightbox-nav .icon {
@@ -216,8 +201,8 @@
   cursor: pointer;
   z-index: 2;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .lightbox-side-nav .icon {
@@ -275,7 +260,7 @@
   object-fit: contain;
   max-width: var(--lightbox-stage-max-width);
   max-height: var(--lightbox-stage-max-height);
-  transition: opacity 0.12s ease;
+  transition: opacity var(--motion-instant) ease;
 }
 
 .lightbox-media.is-loading img,
@@ -300,7 +285,7 @@
   border-radius: 50%;
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top-color: rgba(255, 255, 255, 0.7);
-  animation: spin 0.9s linear infinite;
+  animation: spin var(--motion-spinner) linear infinite;
 }
 
 .lightbox-stage audio {
@@ -610,9 +595,9 @@
   -webkit-appearance: none;
   margin: 0;
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease;
+    border-color var(--motion-hover) ease,
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .lightbox-download .icon,

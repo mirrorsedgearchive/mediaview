@@ -267,16 +267,9 @@ const useDirectoryPanelController = () => {
 
     const handleKeyDown = (event) => {
       if (event.key !== 'Escape') return;
-      if (downloadPrompt?.open) {
-        onCancelDownloadPrompt?.();
-        return;
-      }
-      if (hasDownloadStatus) {
-        if (isDownloading) {
-          onCancelDownload?.();
-          return;
-        }
-        handleDismissDownloadStatus();
+      if (downloadPrompt?.open) return;
+      if (hasDownloadStatus && isDownloading) {
+        onCancelDownload?.();
         return;
       }
       if (selectionMode) {
@@ -378,6 +371,7 @@ const useDirectoryPanelController = () => {
       entryCount,
       sortedEntries,
       folderChildren: directory?.children,
+      folderCustomThumbnails: directory?.customThumbnails,
       viewMode,
       onSelect,
       selectedPath,

@@ -95,6 +95,12 @@
   height: var(--list-thumb-size);
   object-fit: cover;
   border-radius: 4px;
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease-out;
+}
+
+.list-thumb.loaded {
+  opacity: 1;
 }
 
 .list-thumb-stack {
@@ -124,6 +130,7 @@
   inset: 0;
   display: grid;
   place-items: center;
+  transition: opacity var(--motion-fast) ease-out;
 }
 
 .folder-thumb-icon {
@@ -163,9 +170,12 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  image-rendering: auto;
-  filter: blur(0.15px);
-  transform: scale(1.02);
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease-out;
+}
+
+.folder-preview img.loaded {
+  opacity: 1;
 }
 
 .folder-thumb-stack.count-1 .folder-preview {
@@ -205,8 +215,8 @@
   opacity: 0;
   transform: translateY(4px);
   transition:
-    opacity 140ms ease-out,
-    transform 140ms ease-out;
+    opacity var(--motion-fast) ease-out,
+    transform var(--motion-fast) ease-out;
 }
 
 @media (max-width: 1100px) {
@@ -422,6 +432,12 @@
   height: 100%;
   aspect-ratio: var(--thumb-ratio);
   object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease-out;
+}
+
+.thumb-stack img.loaded {
+  opacity: 1;
 }
 
 .thumb-stack img.loaded + .thumb-icon {
@@ -438,6 +454,7 @@
   inset: 0;
   display: grid;
   place-items: center;
+  transition: opacity var(--motion-fast) ease-out;
 }
 
 .thumb-icon .icon {

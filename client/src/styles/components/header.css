@@ -51,8 +51,7 @@
 
 .brand-mark-path {
   fill: var(--brand-mark);
-  transition: 0.2s;
-  transition-timing-function: ease-in-out;
+  transition: fill var(--motion-standard) ease-in-out;
 }
 
 .brand-subtitle {
@@ -94,8 +93,8 @@
   align-items: center;
   justify-content: center;
   transition:
-    border-color 160ms ease-out,
-    color 160ms ease-out;
+    border-color var(--motion-control) ease-out,
+    color var(--motion-control) ease-out;
 }
 
 .topbar-info .icon,

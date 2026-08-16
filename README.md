@@ -71,6 +71,14 @@ Set these as environment variables (comma-separated):
 Patterns match any path segment that starts with the configured value, for example `unlisted` will
 match `/folder-1/unlisted/file.jpg` and `/folder-2/unlisted_img.jpg`.
 
+### Folder thumbnails
+
+Folders show up to the first four thumbnails generated from the folder's images and videos by default. To define custom previews, add up to four images directly inside the folder named `folder_thumb_1.jpg` through `folder_thumb_4.jpg` (or `.png`). Custom thumbnails replace the default previews, are shown in numeric order, and remain hidden from directory listings and search results.
+
+### Content warnings
+
+Add a `content-warning.txt` file directly inside a folder to display a warning before that folder or its subfolders are opened. Warnings from the closest parent folder also apply to its subfolders. The acknowledgement is remembered in the current browser and can be cleared in Settings.
+
 ## Production build
 
 1. Build the client:

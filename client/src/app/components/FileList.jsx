@@ -32,14 +32,7 @@ const buildThumbSrcSet = (pathValue) =>
 const isPreviewableEntry = (entry) => entry?.type === 'image' || entry?.type === 'video';
 
 const ThumbStack = memo(
-  ({
-    entry,
-    sizes,
-    wrapperClassName,
-    imgClassName,
-    iconClassName,
-    iconTag: IconTag,
-  }) => {
+  ({ entry, sizes, wrapperClassName, imgClassName, iconClassName, iconTag: IconTag }) => {
     const [hasError, setHasError] = useState(false);
 
     return (
@@ -110,6 +103,7 @@ const FolderThumbStack = memo(({ entry, previewEntries, thumbnailSize = 'sm' }) 
             src={buildThumbUrl(preview.path, thumbnailSize)}
             alt=""
             loading="lazy"
+            onLoad={handleThumbLoad}
             onError={() => {
               setFailedPaths((previous) => new Set(previous).add(preview.path));
             }}
@@ -189,14 +183,7 @@ const GridFolderCard = memo(
 GridFolderCard.displayName = 'GridFolderCard';
 
 const GridFileCard = memo(
-  ({
-    entry,
-    isSelected,
-    isBatchSelected,
-    isContextHovered,
-    selectionMode,
-    itemHandlers,
-  }) => {
+  ({ entry, isSelected, isBatchSelected, isContextHovered, selectionMode, itemHandlers }) => {
     const hasPreview = isPreviewableEntry(entry);
 
     return (
@@ -296,6 +283,7 @@ ListEntryRow.displayName = 'ListEntryRow';
 const FileList = ({
   entries,
   folderChildren,
+  folderCustomThumbnails,
   viewMode,
   onSelect,
   selectedPath,
@@ -330,16 +318,19 @@ const FileList = ({
   const folderPreviewsByPath = useMemo(() => {
     const previews = new Map();
     folders.forEach((folder) => {
+      const customThumbnails = folderCustomThumbnails?.[folder.path];
       const children = folderChildren?.[folder.path];
       previews.set(
         folder.path,
-        Array.isArray(children)
-          ? children.filter(isPreviewableEntry).slice(0, MAX_FOLDER_PREVIEWS)
-          : []
+        Array.isArray(customThumbnails) && customThumbnails.length > 0
+          ? customThumbnails
+          : Array.isArray(children)
+            ? children.filter(isPreviewableEntry).slice(0, MAX_FOLDER_PREVIEWS)
+            : []
       );
     });
     return previews;
-  }, [folderChildren, folders]);
+  }, [folderChildren, folderCustomThumbnails, folders]);
   const fileIndexByPath = useMemo(() => {
     const next = new Map();
     files.forEach((entry, index) => {

@@ -11,7 +11,7 @@ import {
   SITE_ORIGIN,
   SITEMAP_FILE,
 } from '../config.js';
-import { isExcludedPath, isHiddenPath } from './exclude.js';
+import { isCustomFolderThumbnailPath, isExcludedPath, isHiddenPath } from './exclude.js';
 import { classifyFile } from './classify.js';
 import { writeSitemap } from './sitemap.js';
 
@@ -392,6 +392,21 @@ export const getDirectoryEntries = (relativePath) => {
     if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
     return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
   });
+  return entries;
+};
+
+export const getCustomFolderThumbnailEntries = (relativePath) => {
+  const key = relativePath || '';
+  const children = DIR_CHILDREN.get(key);
+  if (!children) return null;
+  const entries = [];
+  children.forEach((childPath) => {
+    const entry = ENTRY_INDEX.get(childPath);
+    if (entry && !entry.isDir && isCustomFolderThumbnailPath(entry.path)) {
+      entries.push(entry);
+    }
+  });
+  entries.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
   return entries;
 };
 

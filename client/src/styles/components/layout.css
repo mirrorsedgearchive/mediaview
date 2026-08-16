@@ -57,7 +57,7 @@
   pointer-events: none;
   opacity: 0;
   background: rgba(10, 10, 10, 0.5);
-  transition: opacity 180ms ease-out;
+  transition: opacity var(--motion-overlay) ease-out;
 }
 
 .layout[data-footer-overlay='true'] .footer-scroll-guard {

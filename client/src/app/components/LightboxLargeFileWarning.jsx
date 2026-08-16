@@ -1,3 +1,5 @@
+import { Button } from './index.js';
+
 const LightboxLargeFileWarning = ({
   sizeLabel,
   disableWarningsChecked,
@@ -18,12 +20,10 @@ const LightboxLargeFileWarning = ({
       <span>Don&apos;t show this again for large files</span>
     </label>
     <div className="lightbox-warning-actions">
-      <button type="button" className="lightbox-warning-button" onClick={onLoadFile}>
-        Load file
-      </button>
-      <button type="button" className="lightbox-warning-button is-secondary" onClick={onClose}>
+      <Button onClick={onLoadFile}>Load file</Button>
+      <Button variant="secondary" onClick={onClose}>
         Close
-      </button>
+      </Button>
     </div>
   </div>
 );

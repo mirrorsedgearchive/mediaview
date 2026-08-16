@@ -1,0 +1,51 @@
+.app-button {
+  min-height: 32px;
+  padding: 6px 14px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  background: var(--accent-bg-strong);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-control) ease,
+    border-color var(--motion-control) ease,
+    color var(--motion-control) ease;
+}
+
+.app-button .icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.app-button:hover:not(:disabled) {
+  background: var(--accent-bg-emphasis-hover);
+}
+
+.app-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.app-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.app-button-secondary {
+  border-color: var(--divider);
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.app-button-secondary:hover:not(:disabled) {
+  background: var(--panel);
+  border-color: var(--accent-border);
+}
