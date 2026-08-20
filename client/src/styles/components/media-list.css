@@ -196,7 +196,6 @@
   grid-template-columns: repeat(auto-fill, minmax(var(--grid-min), 1fr));
   gap: 4px;
   align-items: stretch;
-  grid-auto-rows: 1fr;
   margin: 4px;
 }
 
@@ -249,14 +248,12 @@
 }
 .grid-virtuoso-list {
   container-type: inline-size;
-  grid-auto-rows: 1fr;
 }
 
 .virtuoso-grid-item {
   display: block;
   width: 100%;
   min-width: 0;
-  height: 100%;
 }
 
 .grid-folder-thumb {
