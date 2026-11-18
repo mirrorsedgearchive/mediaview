@@ -13,26 +13,26 @@
   },
   "dependencies": {
     "bootstrap-icons": "^1.13.2",
-    "browser-fs-access": "^0.38.0",
+    "browser-fs-access": "^0.39.0",
     "fflate": "^0.8.3",
-    "focus-trap-react": "12.0.3",
+    "focus-trap-react": "12.0.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-virtuoso": "^4.18.19",
+    "react-virtuoso": "^4.18.23",
     "snarkdown": "^2.0.0",
     "xss": "^1.0.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.3.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "globals": "^17.13.0",
-    "prettier": "^3.9.10",
-    "vite": "^8.3.5"
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "vite": "^8.3.8"
   }
 }
